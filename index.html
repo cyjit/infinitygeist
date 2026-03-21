@@ -1,0 +1,2470 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+    PROJECT: ITS Season 17 Quick Reference
+    DESCRIPTION: A lightweight, single-file webapp for the Infinity Tournament System Season 17 rules.
+    Optimized for at-the-table quick reference on mobile, with full rules browsing on desktop.
+    Design language matches infinitythelinks.com.
+    Corvus Sphere is ass.
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Geist — ITS 17</title>
+    <meta name="description" content="Quick reference for Infinity the Game ITS Season 17: Seekers. Missions, rules, and deployment maps.">
+    <link rel="icon" type="image/png" href="geist.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   CSS Variables & Reset
+   ═══════════════════════════════════════════ */
+:root {
+    --bg: #0c101d;
+    --bg-card: #141925;
+    --bg-card-hover: #1a2030;
+    --bg-surface: #1f2937;
+    --border: #2a3348;
+    --border-light: #374151;
+    --text: #e5e7eb;
+    --text-dim: #9ca3af;
+    --text-muted: #6b7281;
+    --white: #ffffff;
+    --cyan: #22d3ee;
+    --cyan-light: #67e8f9;
+    --cyan-glow: rgba(34,211,238,0.4);
+    --cyan-bg: rgba(34,211,238,0.08);
+    --orange: #f59e0b;
+    --orange-dim: rgba(245,158,11,0.15);
+    --green: #34d399;
+    --green-dim: rgba(52,211,153,0.12);
+    --red: #ef4444;
+    --red-dim: rgba(239,68,68,0.12);
+    --radius: 6px;
+    --radius-lg: 10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: 'Exo 2', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg);
+    background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 25px 25px;
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+    padding-bottom: 80px;
+}
+
+/* ═══════════════════════════════════════════
+   Layout
+   ═══════════════════════════════════════════ */
+.app { max-width: 960px; margin: 0 auto; padding: 12px; }
+@media(min-width:768px) { .app { padding: 24px; } }
+
+/* ═══════════════════════════════════════════
+   Header / Nav
+   ═══════════════════════════════════════════ */
+.site-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 20px 0 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+}
+.site-header .header-logo {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+.site-header .header-text {
+    text-align: left;
+}
+.site-header h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--white);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.site-header h1 span { color: var(--cyan); }
+.site-header .subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+.site-header .version-info {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+    opacity: 0.7;
+}
+.site-header .version-link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    transition: color 0.2s;
+}
+.site-header .version-link:hover {
+    color: #7dd3fc;
+}
+.site-header .feedback-link {
+    display: inline-block;
+    font-size: 0.55rem;
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    margin-top: 3px;
+    letter-spacing: 0.05em;
+    transition: color 0.2s;
+}
+.site-header .feedback-link:hover {
+    color: #7dd3fc;
+}
+
+.nav-bar {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.nav-bar::-webkit-scrollbar { display: none; }
+
+.nav-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.nav-btn:hover { background: var(--bg-card-hover); color: var(--text); }
+.nav-btn.active {
+    background: var(--cyan-bg);
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan-glow);
+}
+
+/* ═══════════════════════════════════════════
+   Mission Grid (Landing)
+   ═══════════════════════════════════════════ */
+.mission-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+@media(min-width:520px) { .mission-grid { grid-template-columns: 1fr 1fr; } }
+@media(min-width:768px) { .mission-grid { grid-template-columns: 1fr 1fr 1fr; } }
+
+.mission-tile {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+.mission-tile:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px rgba(34,211,238,0.15);
+    transform: translateY(-1px);
+}
+.mission-tile .tile-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 6px;
+}
+.mission-tile .tile-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.tag {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.tag-ts { background: var(--cyan-bg); color: var(--cyan); }
+.tag-reinf-yes { background: var(--green-dim); color: var(--green); }
+.tag-reinf-no { background: var(--red-dim); color: var(--red); }
+.tag-da { background: var(--orange-dim); color: var(--orange); }
+.tag-resops { background: rgba(168,85,247,0.12); color: #c084fc; }
+.tag-hvt { background: rgba(244,114,182,0.12); color: #f472b6; }
+.tag-class { background: rgba(168,162,255,0.12); color: #a5b4fc; }
+.tag-retreat-yes { background: var(--orange-dim); color: var(--orange); }
+.tag-retreat-no { background: var(--green-dim); color: var(--green); }
+
+.section-divider {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 12px 0 6px;
+    grid-column: 1 / -1;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.rand-btn {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    background: rgba(34,211,238,0.1);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 2px 8px;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+.rand-btn:hover { background: rgba(34,211,238,0.25); }
+.section-divider .divider-note {
+    font-weight: 500;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    opacity: 0.7;
+    letter-spacing: 0.08em;
+    margin-left: 6px;
+}
+
+/* ═══════════════════════════════════════════
+   Mission Detail View
+   ═══════════════════════════════════════════ */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--cyan);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 0;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.back-btn:hover { color: var(--cyan-light); text-shadow: 0 0 6px var(--cyan-glow); }
+
+.mission-header {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    margin-bottom: 12px;
+}
+.mission-header h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.mission-header .mission-meta {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+.mission-header .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+.mission-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+.mission-section-head {
+    padding: 12px 16px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    transition: background 0.15s;
+}
+.mission-section-head:hover { background: var(--bg-card-hover); }
+.mission-section-head h3 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.mission-section-head .chevron {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    transition: transform 0.2s;
+}
+.mission-section.open .chevron { transform: rotate(180deg); }
+.mission-section-body {
+    display: none;
+    padding: 0 16px 16px;
+}
+.mission-section.open .mission-section-body { display: block; }
+
+/* Objectives list */
+.obj-list { list-style: none; }
+.obj-list li {
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+.obj-list li:last-child { border-bottom: none; }
+.obj-pts {
+    font-weight: 700;
+    color: var(--orange);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Deployment table */
+.dep-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+    margin-top: 8px;
+}
+.dep-table th {
+    background: var(--bg-surface);
+    color: var(--text-dim);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.68rem;
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+.dep-table td {
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+}
+.dep-table tr:last-child td { border-bottom: none; }
+
+/* Skills */
+.skill-block {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin: 8px 0;
+}
+.skill-block .skill-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--white);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+.skill-block .skill-type {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.skill-block .skill-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 8px;
+    margin-bottom: 3px;
+}
+.skill-block ul {
+    list-style: none;
+    padding: 0;
+}
+.skill-block li {
+    font-size: 0.82rem;
+    padding: 2px 0;
+    padding-left: 14px;
+    position: relative;
+    color: var(--text);
+}
+.skill-block li::before {
+    content: '►';
+    position: absolute;
+    left: 0;
+    color: var(--text-muted);
+    font-size: 0.6rem;
+    top: 5px;
+}
+
+/* Shared rule inline expander */
+.shared-rule-ref {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--cyan);
+    cursor: pointer;
+    padding: 4px 8px;
+    background: var(--cyan-bg);
+    border-radius: var(--radius);
+    margin: 4px 2px;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+}
+.shared-rule-ref:hover { border-color: var(--cyan); }
+.shared-rule-ref .sr-chevron { font-size: 0.6rem; transition: transform 0.2s; }
+.shared-rule-ref.open .sr-chevron { transform: rotate(90deg); }
+
+.shared-rule-inline {
+    display: none;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-size: 0.82rem;
+}
+.shared-rule-inline.open { display: block; }
+.shared-rule-inline p { margin: 4px 0; color: var(--text); }
+.shared-rule-inline ul { list-style: none; padding: 0; }
+.shared-rule-inline li { padding: 2px 0 2px 14px; position: relative; }
+.shared-rule-inline li::before { content: '▸'; position: absolute; left: 0; color: var(--text-muted); font-size: 0.7rem; }
+.shared-rule-inline .sr-title {
+    font-weight: 700; color: var(--white); text-transform: uppercase;
+    font-size: 0.78rem; letter-spacing: 0.05em; margin-bottom: 4px;
+}
+
+/* SVG maps */
+.map-container {
+    margin: 8px 0;
+    overflow-x: auto;
+}
+.map-container svg {
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Tactical Support d12 */
+.ts-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2px 10px;
+    font-size: 0.8rem;
+    margin: 6px 0;
+}
+.ts-grid .ts-num {
+    color: var(--orange);
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-align: right;
+    min-width: 20px;
+}
+.ts-grid .ts-effect { color: var(--text); }
+.ts-note {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+    font-style: italic;
+}
+
+/* Profile table (turrets, prototypes, etc) */
+.profile-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    margin: 8px 0;
+}
+.profile-table th {
+    background: var(--bg);
+    color: var(--text-dim);
+    font-weight: 600;
+    padding: 4px 6px;
+    text-align: center;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--cyan);
+}
+.profile-table td {
+    padding: 4px 6px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+}
+
+/* Panoply chart */
+.panoply-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto 1fr;
+    gap: 2px 12px;
+    font-size: 0.78rem;
+    margin: 6px 0;
+}
+.panoply-grid .pg-num { color: var(--text-muted); font-weight: 600; }
+
+/* Important callout */
+.callout {
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.3);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    margin: 8px 0;
+    font-size: 0.82rem;
+}
+.callout-label {
+    font-size: 0.7rem; font-weight: 700; color: var(--orange);
+    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;
+}
+
+/* Notes / flavor text */
+.flavor { color: var(--text-muted); font-style: italic; font-size: 0.82rem; margin-bottom: 8px; }
+
+/* ═══════════════════════════════════════════
+   Rules Browse View
+   ═══════════════════════════════════════════ */
+.rules-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+.rules-section-head {
+    padding: 14px 16px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.rules-section-head:hover { background: var(--bg-card-hover); }
+.rules-section-head h2 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.rules-section-body {
+    display: none;
+    padding: 0 16px 16px;
+    font-size: 0.85rem;
+}
+.rules-section.open .rules-section-body { display: block; }
+.rules-section.open .chevron { transform: rotate(180deg); }
+
+.rules-section-body h3 {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 12px;
+    margin-bottom: 4px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid var(--border);
+}
+.rules-section-body h3:first-child { margin-top: 0; }
+.rules-section-body p { margin: 5px 0; color: var(--text); }
+.rules-section-body ul { padding-left: 0; list-style: none; }
+.rules-section-body li { padding: 2px 0 2px 14px; position: relative; }
+.rules-section-body li::before { content: '▸'; position: absolute; left: 0; color: var(--text-muted); font-size: 0.7rem; }
+
+.rules-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    margin: 8px 0;
+}
+.rules-table th {
+    background: var(--bg-surface);
+    color: var(--text-dim);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+.rules-table td {
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--border);
+}
+.threshold-table { text-align: center; }
+.threshold-table th { text-align: center; font-size: 0.65rem; }
+.threshold-table td { text-align: center; font-size: 0.75rem; }
+.threshold-table .op-val { color: var(--orange); font-weight: 700; }
+
+/* ═══════════════════════════════════════════
+   Utility
+   ═══════════════════════════════════════════ */
+.hidden { display: none !important; }
+.text-note { font-size: 0.78rem; color: var(--text-muted); margin: 6px 0; }
+
+/* Back to top */
+#toTopBtn {
+    display: none; position: fixed; bottom: 16px; right: 16px; z-index: 99;
+    border: 1px solid var(--cyan); background: var(--bg-card);
+    color: var(--cyan); cursor: pointer; padding: 10px 12px;
+    border-radius: var(--radius); font-size: 16px; font-family: inherit;
+    transition: all 0.2s;
+}
+#toTopBtn:hover { background: var(--cyan-bg); box-shadow: 0 0 10px var(--cyan-glow); }
+
+/* ═══════════════════════════════════════════
+   Dice Roller Widget
+   ═══════════════════════════════════════════ */
+#diceToggle {
+    position: fixed; bottom: 16px; left: 16px; z-index: 200;
+    width: 46px; height: 46px; border: 1px solid var(--cyan);
+    background: var(--bg-card); color: var(--cyan); cursor: pointer;
+    border-radius: var(--radius); font-family: inherit;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 0 8px var(--cyan-glow);
+}
+#diceToggle:hover { background: var(--cyan-bg); box-shadow: 0 0 14px var(--cyan-glow); }
+#diceToggle svg { width: 26px; height: 26px; fill: var(--cyan); }
+
+#dicePanel {
+    display: none; position: fixed; bottom: 72px; left: 16px; z-index: 200;
+    width: 300px; max-height: 70vh;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    flex-direction: column; overflow: hidden;
+}
+#dicePanel.open { display: flex; }
+
+.dice-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+}
+.dice-header h3 {
+    font-size: 0.8rem; color: var(--cyan); text-transform: uppercase;
+    letter-spacing: 0.1em; font-weight: 700; margin: 0;
+}
+.dice-close {
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    font-size: 1.1rem; padding: 0 4px; line-height: 1;
+}
+.dice-close:hover { color: var(--text); }
+
+.dice-buttons {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+    padding: 10px 12px;
+}
+.dice-roll-btn {
+    background: var(--bg-surface); border: 1px solid var(--border);
+    color: var(--text); cursor: pointer; padding: 10px 6px;
+    border-radius: var(--radius); font-family: inherit;
+    font-size: 0.72rem; font-weight: 600; text-align: center;
+    transition: all 0.15s; line-height: 1.3;
+}
+.dice-roll-btn:hover { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-bg); }
+.dice-roll-btn:active { transform: scale(0.96); }
+.dice-roll-btn .dice-label { display: block; font-size: 0.65rem; color: var(--text-muted); font-weight: 400; margin-top: 2px; }
+
+.dice-log-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 12px; border-top: 1px solid var(--border);
+}
+.dice-log-header span {
+    font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;
+    letter-spacing: 0.08em; font-weight: 600;
+}
+.dice-clear-btn {
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em;
+    font-family: inherit;
+}
+.dice-clear-btn:hover { color: var(--red); }
+
+.dice-log {
+    flex: 1; overflow-y: auto; padding: 0 12px 10px; max-height: 40vh;
+}
+.dice-log:empty::after {
+    content: 'Roll to begin'; display: block; text-align: center;
+    color: var(--text-muted); font-size: 0.7rem; padding: 16px 0; opacity: 0.6;
+}
+.dice-entry {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    padding: 6px 0; border-bottom: 1px solid var(--border);
+    font-size: 0.72rem; line-height: 1.4; animation: diceFadeIn 0.2s ease;
+}
+@keyframes diceFadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.dice-entry-text { flex: 1; }
+.dice-entry-type { color: var(--cyan); font-weight: 600; }
+.dice-entry-roll { color: var(--orange); font-weight: 700; }
+.dice-entry-result { color: var(--text); }
+.dice-entry-del {
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    font-size: 0.8rem; padding: 0 0 0 8px; line-height: 1; flex-shrink: 0;
+}
+.dice-entry-del:hover { color: var(--red); }
+
+@media (max-width: 480px) {
+    #dicePanel { left: 8px; right: 8px; width: auto; bottom: 70px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+    <!-- Header -->
+    <header class="site-header">
+        <img src="geist.png" alt="Mission Geist" class="header-logo">
+        <div class="header-text">
+            <h1>Mission <span>Geist</span></h1>
+            <div class="subtitle">ITS 17 — Seekers</div>
+            <div class="version-info"><a href="https://downloads.corvusbelli.com/infinity/organized-play/its-rules-season-17-en-v1.0.2.pdf" target="_blank" rel="noopener" class="version-link">ITS Rules v1.0.2</a> — Updated March 21, 2026</div>
+            <a href="https://forms.gle/1ZQMZHwR7cprbxuC7" target="_blank" rel="noopener" class="feedback-link">Submit Feedback</a>
+            <a href="https://infinitynewengland.com" target="_blank" rel="noopener" class="feedback-link">Courtesy of Infinity New England</a>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-bar" id="nav">
+        <button class="nav-btn active" data-view="missions">Missions</button>
+        <button class="nav-btn" data-view="season">Season 17</button>
+        <button class="nav-btn" data-view="tournament">Tournament</button>
+        <button class="nav-btn" data-view="reference">Reference</button>
+    </nav>
+
+    <!-- Content area -->
+    <main id="content"></main>
+</div>
+
+<!-- Dice Roller Widget -->
+<button id="diceToggle" onclick="toggleDicePanel()" title="Dice Roller">
+    <svg viewBox="0 0 24 24"><path d="M19.1 4.9L12 2 4.9 4.9 2 12l2.9 7.1L12 22l7.1-2.9L22 12l-2.9-7.1zM12 4.3l5 2-5 2-5-2 5-2zM4.3 12l2-5 2 5-2 5-2-5zm7.7 7.7l-5-2 5-2 5 2-5 2zm5.7-2.7l-2-5 2-5 2 5-2 5z"/></svg>
+</button>
+<div id="dicePanel">
+    <div class="dice-header">
+        <h3>Dice Roller</h3>
+        <button class="dice-close" onclick="toggleDicePanel()" title="Close">✕</button>
+    </div>
+    <div class="dice-buttons">
+        <button class="dice-roll-btn" onclick="diceRoll('ts')">Tactical Support<span class="dice-label">d12</span></button>
+        <button class="dice-roll-btn" onclick="diceRoll('booty')">Booty / Panoply<span class="dice-label">d20</span></button>
+        <button class="dice-roll-btn" onclick="diceRoll('meta')">MetaChemistry<span class="dice-label">d20</span></button>
+        <button class="dice-roll-btn" onclick="diceRoll('speedball')">Speedball<span class="dice-label">d20</span></button>
+    </div>
+    <div class="dice-log-header">
+        <span>Roll Log</span>
+        <button class="dice-clear-btn" onclick="diceClearLog()">Clear</button>
+    </div>
+    <div class="dice-log" id="diceLog"></div>
+</div>
+
+<button onclick="window.scrollTo({top:0,behavior:'smooth'})" id="toTopBtn" title="Back to top">↑ Top</button>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+
+const SHARED_RULES = {
+    specialist_troops: {
+        title: "Specialist Troops",
+        html: `<p>For the purposes of this scenario, only <strong>Hackers, Doctors, Engineers, Forward Observers, Paramedics</strong>, and Troopers possessing the <strong>Chain of Command</strong> or the <strong>Specialist Operative</strong> Special Skill are considered Specialist Troops.</p>
+        <p>Hackers, Doctors, and Engineers cannot make use of Repeaters or Peripheral (Servant) Models to perform tasks reserved for Specialist Troops.</p>`
+    },
+    dominate_zo: {
+        title: "Dominate Zone of Operations",
+        html: `<p>A Zone of Operations (ZO) is Dominated by a player if they have more Victory Points than the adversary inside the area.</p>
+        <p>Only Troopers represented by <strong>Models or Markers</strong> (Camouflaged, Shasvastii-Embryo...) count, as well as Proxies and Peripheral Troops. Troops in a Null State do not count.</p>
+        <p>Tokens representing weapons or equipment (Mines, Deployable Repeaters), fake Holoechoes, and any Token that does not represent a Trooper do not count.</p>
+        <p>A Trooper is inside a ZO when more than half the Trooper's base is inside that ZO.</p>`
+    },
+    shasvastii: {
+        title: "Shasvastii",
+        html: `<p>Troopers possessing the Shasvastii Special Skill that are inside a Zone of Operations count while they are in the Shasvastii-Embryo State or any non-Null State.</p>`
+    },
+    baggage: {
+        title: "Baggage",
+        html: `<p>Troopers possessing the Baggage piece of Equipment that are inside a Zone of Operations and in a non-Null State provide an additional <strong>20 Victory Points</strong> for Dominating the ZO.</p>`
+    },
+    end_of_mission: {
+        title: "End of the Mission",
+        html: `<p>This scenario has a limited time frame, so it will automatically finish at the end of the third Game Round.</p>
+        <p>If one of the players starts their Active Turn in a Retreat! situation, the game will end at the end of that Turn.</p>`
+    },
+    end_of_mission_nq: {
+        title: "End of the Mission (No Quarter)",
+        html: `<p>This scenario has a limited time frame, so it will automatically finish at the end of the third Game Round.</p>`
+    },
+    no_quarter: {
+        title: "No Quarter",
+        html: `<p>In this scenario, the Retreat! rules are not applied.</p>`
+    },
+    operational_learning: {
+        title: "Operational Learning",
+        html: `<p>When a Specialist Troop performs a Skill with the Scenario Label that requires a WIP Roll and fails, they benefit from the following MODs in subsequent Orders:</p>
+        <ul>
+            <li>In the <strong>second consecutive Order</strong>, the Trooper applies a <strong>+3 MOD</strong> to the WIP Roll.</li>
+            <li>In the <strong>third consecutive Order</strong> (and subsequent), the Trooper applies <strong>+3 and +1SD MODs</strong>.</li>
+            <li>These MODs are cumulative with any other MOD that applies to Skills with the Scenario Label.</li>
+        </ul>
+        <p><strong>Resets if:</strong> The Trooper passes the Roll, doesn't declare that Scenario Skill, declares the same Skill on a different target, or an Order is spent on any other Trooper. Only one sequence per Trooper per Scenario-labelled Skill at a time.</p>`
+    },
+    killing: {
+        title: "Killing",
+        html: `<p>Troopers are considered Killed by the adversary when they enter Dead State, or they are in a Null State at the end of the game.</p>
+        <p>Troopers that have not been deployed on the game table, as a Model or Marker, at the end of the game will be considered to be Killed by the adversary.</p>`
+    },
+    hvt_classified_not_used: {
+        title: "HVT & Classified Deck Not Used",
+        html: `<p>In this scenario, the HVT Model and Secure HVT rules are not applied. Players will not deploy the HVT Model on the game table and they will not use the Classified Deck.</p>`
+    },
+    secure_hvt_not_used: {
+        title: "Secure HVT / Secure Treasure Not Used",
+        html: `<p>In this scenario, the Secure HVT or Secure Treasure rule is not applied.</p>`
+    },
+    key_ops: {
+        title: "Key Ops",
+        html: `<p>At the end of the Deployment Phase, in Initiative order, players must declare which Trooper from their Army List is their Key Ops.</p>
+        <p>The Trooper chosen must be one of the models deployed on the game table. Players are not allowed to choose Troopers in Hidden Deployment or in Marker state. This Trooper must always be on the game table as a Model and not as a Marker (Camouflaged, Holoecho…). Irregular Troops and those whose Troop Type is REM or VH are not eligible.</p>
+        <p>The Key Ops possesses the <strong>Dodge (+3)</strong> and <strong>Tactical Awareness</strong> Special Skills (not cumulative if already possessed).</p>
+        <p>The Key Ops is identified with a Player A or B Marker.</p>`
+    },
+    intelcom_card: {
+        title: "INTELCOM Card (Support & Control)",
+        html: `<p>Before the beginning of the game, but after choosing the first Classified Objective, the player must inform their adversary if that card will be their Classified Objective or their INTELCOM Card. Each player rolls a die and the highest score announces first. The content of the card is Private Information.</p>
+        <p><strong>Support and Control Mode:</strong> At the end of the last Game Round, in Initiative order, the player can add the value of the card to their Victory Points in the Zone of Operations (ZO) of their choice. The player must have at least one Trooper inside that ZO, in a non-Null State.</p>`
+    },
+    control: {
+        title: "Control (Generic)",
+        html: `<p>A Tactical Element (Beacon, Console, etc.) is Controlled by a player as long as that player is the only one with at least one Trooper (as a Model, not a Marker) in Silhouette contact with it. There cannot be any enemy Troopers in Silhouette contact with the element. Models in a Null State cannot do either.</p>`
+    }
+};
+
+const DEPLOYMENT_STANDARD = [
+    { pts: 150, swc: 3, table: '24×32"', zone: '8×24"' },
+    { pts: 200, swc: 4, table: '32×48"', zone: '12×32"' },
+    { pts: 250, swc: 5, table: '32×48"', zone: '12×32"' },
+    { pts: 300, swc: 6, table: '48×48"', zone: '12×48"' },
+    { pts: 350, swc: 7, table: '48×48"', zone: '12×48"' },
+    { pts: 400, swc: 8, table: '48×48"', zone: '12×48"' },
+];
+
+const DEPLOYMENT_WIDE = [
+    { pts: 150, swc: 3, table: '24×32"', zone: '12×24"' },
+    { pts: 200, swc: 4, table: '32×48"', zone: '16×32"' },
+    { pts: 250, swc: 5, table: '32×48"', zone: '16×32"' },
+    { pts: 300, swc: 6, table: '48×48"', zone: '16×48"' },
+    { pts: 350, swc: 7, table: '48×48"', zone: '16×48"' },
+    { pts: 400, swc: 8, table: '48×48"', zone: '16×48"' },
+];
+
+const DEPLOYMENT_CORNER = [
+    { pts: 150, swc: 3, table: '24×32"', zone: 'Radius 12"' },
+    { pts: 200, swc: 4, table: '32×48"', zone: 'Radius 20"' },
+    { pts: 250, swc: 5, table: '32×48"', zone: 'Radius 20"' },
+    { pts: 300, swc: 6, table: '48×48"', zone: 'Radius 24"' },
+    { pts: 350, swc: 7, table: '48×48"', zone: 'Radius 24"' },
+    { pts: 400, swc: 8, table: '48×48"', zone: 'Radius 24"' },
+];
+
+const MISSIONS = [
+    // ── ITS SCENARIOS ──
+    {
+        id: 'akial_interference', name: 'Akial Interference', category: 'its',
+        tacticalSupport: 0, reinforcements: true,
+        hvts: 4, classifiedCount: 1, retreat: true,
+        flavor: 'For you, Laika.',
+        deployment: DEPLOYMENT_STANDARD, deployType: 'standard',
+        objectives: [
+            { text: 'Accomplish Common Classified Objectives', pts: '1 each (max 6)' },
+            { text: 'End of game: accomplished more Classified Objectives than adversary', pts: '1 OP' },
+            { text: 'End of game: accomplished at least 1 Classified Objective in each Game Round', pts: '1 OP' },
+        ],
+        classified: 'Each player has 1 Private Classified Objective (2 OP).',
+        deployNotes: 'Cannot deploy in Silhouette contact with the Akial Antenna or any HVT.',
+        sharedRules: ['specialist_troops'],
+        specialRules: `
+            <h4>Common Classified Objectives</h4>
+            <p>Both players share 2 Common Classified Objectives each Game Round (Public Information).</p>
+            <p>At the beginning of the first Game Round, each player shuffles their Classified Deck, draws two cards, selects one as their Private Classified Objective, and the other as a Common Classified Objective. Both reveal Common Classifieds at the same time.</p>
+            <p>At the beginning of Rounds 2 and 3, unaccomplished Common Classifieds are discarded. Each player draws two more cards, chooses one as a Common Classified, discards the other.</p>
+            <p>Common Classifieds checked "at the end of the game" or "during the game" can be accomplished at the end of any Player Turn. If both players accomplish the same Common Classified in the same Round, both count.</p>
+
+            <h4>Private Classified Objective</h4>
+            <p>Cannot be used to Emit Akial Interference, and cannot be canceled by it. Private Information.</p>
+
+            <h4>Signal Redundancy</h4>
+            <p>If both revealed Common Classifieds share the same name, the player with the first Player Turn draws another card as an extra Common Classified. Two Classifieds with the same name can both be accomplished if they have different targets or are accomplished by different Troopers.</p>
+
+            <h4>Multiple HVTs</h4>
+            <p>Each player deploys <strong>four</strong> HVTs. Each HVT may only be used to accomplish one Classified Objective — once completed, that HVT Model is removed.</p>
+        `,
+        skills: [
+            {
+                name: 'Emit Akial Interference', type: 'Short Skill — Attack, Scenario',
+                requirements: [
+                    'Only Specialist Troops can declare this Skill.',
+                    'Must be in Silhouette contact with the Akial Antenna.',
+                    'Player has accomplished a Common Classified Objective with a matching symbol.',
+                    'Each Common Classified card can only be chosen once for this Skill.',
+                    'Each Specialist Troop can only Emit Akial Interference once per Game Round.'
+                ],
+                effects: [
+                    'Normal WIP Roll to Emit Akial Interference. Can be repeated on failure.',
+                    'When emitted, the player may cancel a Common Classified accomplished by the adversary that shares a symbol with one the player previously accomplished.',
+                    'The adversary has no longer accomplished that card. If neither player accomplished it, discard it.',
+                    'Only accomplished Common Classified cards count towards score or can be used to Emit.'
+                ]
+            },
+            {
+                name: 'Filter the Signal', type: 'Short Skill — Attack, Scenario',
+                requirements: [
+                    'Only Specialist Troops can declare this Skill.',
+                    'Must be in Silhouette contact with the Akial Antenna.'
+                ],
+                effects: [
+                    'No Roll needed. The player can Filter the Signal.',
+                    'Choose one current Common Classified Objective card.',
+                    'If any player accomplished it, it stays accomplished. If neither did, discard it.',
+                    'The player draws a replacement card from their deck.'
+                ]
+            }
+        ],
+        mapData: { type: 'standard', objectives: [{ type: 'antenna', x: 0.5, y: 0.5, label: 'Akial Antenna' }] },
+        extraNotes: ['Secure HVT / Secure Treasure not used in this scenario.']
+    },
+    {
+        id: 'area_of_interest', name: 'Area of Interest', category: 'its',
+        tacticalSupport: 0, reinforcements: true,
+        hvts: 1, classifiedCount: 1, retreat: true,
+        deployment: DEPLOYMENT_CORNER, deployType: 'corner',
+        objectives: [
+            { text: 'End of game: Dominate an Area of Interest', pts: '1 OP each (max 3)' },
+            { text: 'End of each Game Round: Dominate the Special Area of Interest', pts: '1 OP' },
+            { text: 'End of each Game Round: have an Activated Communication Antenna', pts: '1 OP' },
+        ],
+        classified: 'Each player has 1 Classified Objective (1 OP).',
+        deployNotes: 'Corner deployment. Cannot deploy inside an Area of Interest or in Silhouette contact with the Communication Antenna.',
+        sharedRules: ['specialist_troops', 'dominate_zo', 'shasvastii', 'baggage', 'intelcom_card', 'end_of_mission'],
+        specialRules: `
+            <h4>Communication Antenna</h4>
+            <p>1 Communication Antenna in the center of the table. Represented by Transmission Antenna Token (40mm).</p>
+
+            <h4>Areas of Interest</h4>
+            <p>3 Areas of Interest (Circular Templates), each a ZO. 1 is the Special Area of Interest. Before Deployment, in Initiative order, each player places their Circular Templates: completely outside any DZs, cannot overlap another Area of Interest.</p>
+            <p>Player with first turn places an Area of Interest AND the Special Area of Interest. Player with second turn places one Area of Interest.</p>
+        `,
+        skills: [
+            {
+                name: 'Activate Communication Antenna', type: 'Short Skill — Attack, Scenario',
+                requirements: ['Only Specialist Troops.', 'Must be in Silhouette contact with the Communication Antenna.'],
+                effects: [
+                    'No Roll needed (auto-success).',
+                    'If there are enemy Hackers within any Areas of Interest, one can declare ARO — becomes a Face to Face WIP Roll.',
+                    'Can retry on failure. Can be re-Activated by the other player (flips control).'
+                ]
+            }
+        ],
+        mapData: { type: 'corner', dzCorner: 'tl-br', objectives: [
+            { type: 'antenna', x: 0.5, y: 0.5, label: 'Comm. Antenna' }
+        ] }
+    },
+    {
+        id: 'b_pong', name: 'B-Pong', category: 'its',
+        tacticalSupport: 2, reinforcements: true,
+        hvts: 1, classifiedCount: 2, retreat: false,
+        deployment: DEPLOYMENT_WIDE, deployType: 'wide',
+        objectives: [
+            { text: 'End of game: Tracking Beacon totally inside enemy half', pts: '2 OP' },
+            { text: 'End of each Game Round: Control the Tracking Beacon', pts: '1 OP' },
+            { text: 'End of each Game Round: Control at least one Console', pts: '1 OP' },
+        ],
+        classified: 'Each player has 2 Classified Objectives (1 OP each).',
+        deployNotes: 'Exclusion Zone: 4" (2" in 150pt) either side of central line — no AD or Superior Deployment.',
+        sharedRules: ['specialist_troops'],
+        specialRules: `
+            <h4>Tracking Beacon</h4>
+            <p>1 Tracking Beacon placed in the center of the table. Represented by a Beacon Token (25mm).</p>
+
+            <h4>Control the Tracking Beacon</h4>
+            <p>At the end of each Game Round, Controlled by a player if they are the only one with at least one Trooper (Model, not Marker) in Silhouette contact. No enemy Troopers in contact. Null State models cannot.</p>
+
+            <h4>Consoles</h4>
+            <p>2 Consoles on the central line: 12" from table edges (300+), 8" (200/250), 6" (150). Represented by Console A Tokens (40mm).</p>
+
+            <h4>Control the Console</h4>
+            <p>Same rules as Control the Tracking Beacon but for Consoles.</p>
+        `,
+        skills: [
+            {
+                name: 'Relocate the Tracking Beacon', type: 'Short Skill — Attack, Scenario',
+                requirements: [
+                    'Only Specialist Troops can declare this Skill.',
+                    'Must be in Silhouette contact with the Tracking Beacon.',
+                    'Each Specialist Troop can only declare this once per Game Round.'
+                ],
+                effects: [
+                    'No Roll needed. Place the Tracking Beacon anywhere within 4" of its previous position.',
+                    'Must follow Common Rules of the Tracking Beacon.'
+                ]
+            },
+            {
+                name: 'Activate Console', type: 'Short Skill — Attack, Scenario',
+                requirements: [
+                    'Only Specialist Troops can declare this Skill.',
+                    'Must be in Silhouette contact with the Console.',
+                    'Tracking Beacon cannot be in Silhouette contact with a Trooper.',
+                    'Each Specialist Troop can only successfully Activate once per Game Round.'
+                ],
+                effects: [
+                    'Normal WIP Roll. Can be repeated on failure.',
+                    'On success, choose one: <strong>Nudge</strong> (place Beacon within 2") or <strong>Magnetize</strong> (place Beacon within 6" directly towards table center, cannot cross center).'
+                ]
+            }
+        ],
+        extraRulesHtml: `
+            <h4>Common Rules of the Tracking Beacon</h4>
+            <ul>
+                <li>Final position must be fully supported by its surface; cannot be on a vertical surface.</li>
+                <li>Must be able to draw a path between start and end — not blocked by impassable obstacles or gaps smaller than the Beacon diameter.</li>
+                <li>Beacon placed at the Conclusion of the Order.</li>
+            </ul>
+        `,
+        mapData: { type: 'wide', objectives: [
+            { type: 'beacon', x: 0.5, y: 0.5, label: 'Tracking Beacon' },
+            { type: 'console', x: 0.25, y: 0.5, label: 'Console', edgeDist: '12" from edge' },
+            { type: 'console', x: 0.75, y: 0.5, label: 'Console', edgeDist: '12" from edge' }
+        ], exclusionZone: true },
+        endNotes: ['No Quarter — Retreat! rules are not applied.']
+    },
+    {
+        id: 'corporate_appropriation', name: 'Corporate Appropriation', category: 'its',
+        tacticalSupport: 0, reinforcements: true,
+        hvts: 1, classifiedCount: 3, retreat: true,
+        deployment: DEPLOYMENT_STANDARD, deployType: 'standard',
+        objectives: [
+            { text: 'End of game: have the Enemy Prototype Captured', pts: '2 OP' },
+            { text: 'End of game: Enemy Prototype Captured in your Deployment Zone', pts: '+1 OP' },
+            { text: 'End of game: your Prototype is not Captured by the enemy (only if not Destroyed)', pts: '1 OP' },
+            { text: 'End of game: your Prototype is Destroyed', pts: '3 OP' },
+            { text: 'End of game: acquired more weapons/items from Panoplies than adversary', pts: '1 OP' },
+        ],
+        classified: 'Each player has 3 Classified Objectives (1 OP each).',
+        deployNotes: 'Exclusion Zone: 4" either side of central line — no AD or Superior Deployment.',
+        sharedRules: ['specialist_troops', 'end_of_mission'],
+        specialRules: `
+            <h4>Prototypes</h4>
+            <p>2 Prototypes on the central line, 12" from table edges (300+), 8" (200/250), 6" (150). Before Deployment, the player with second Turn decides which Prototype belongs to which player. Represented by Objective Tokens (40mm).</p>
+            <p>Prototypes have a Profile and can be targeted, but cannot be chosen as the target of an Attack that would also affect Enemy or Allied Troopers.</p>
+            <table class="profile-table"><thead><tr><th>ARM</th><th>BTS</th><th>STR</th><th>S</th></tr></thead>
+            <tbody><tr><td>6</td><td>6</td><td>3</td><td>3</td></tr></tbody></table>
+            <p><strong>Fixed CC Roll = 8, GizmoKit (PH=9)</strong></p>
+
+            <h4>Automated Defense System (ADS)</h4>
+            <p>Any CC Attack against the Prototype triggers a CC Attack in reaction (auto-rolls 8). Always Face to Face. No MODs to attacker's CC. If the ADS's 8 succeeds: Stun Ammo hit, one Saving Roll vs BTS, PS 5. Immunity (Enhanced) and Immunity (BTS) are not effective.</p>
+
+            <h4>Destroy the Prototypes</h4>
+            <p>Can only be damaged by CC Attacks with Anti-materiel Trait, or by placing D-Charges. Destroyed when Wounds ≥ STR. Can be targeted by Engineer or GizmoKit. <strong>Attacks cannot be declared against Prototypes during the first Game Round</strong> (except Pick Up Prototype).</p>
+
+            <h4>Capturing Enemy Prototype</h4>
+            <p>Captured if, at end of game, a player has a Model (not Marker) carrying it, not in Null State, not in Silhouette contact with any enemy Model.</p>
+
+            <h4>Panoplies</h4>
+            <p>2 Panoplies in different halves of the table, each in the middle of the front edge of the Deployment Zone. Represented by Objective Tokens (40mm).</p>
+        `,
+        skills: [
+            {
+                name: 'Pick Up Prototype', type: 'Short Skill — Attack, Scenario',
+                requirements: [
+                    'Be in Silhouette contact with an allied Trooper in Normal State with an Enemy Prototype, OR',
+                    'Be in Silhouette contact with an Enemy Prototype Token not being carried.'
+                ],
+                effects: [
+                    'No Roll needed. Any Trooper can pick up an Enemy Prototype.',
+                    'Must follow Common Rules of Prototypes.'
+                ]
+            },
+            {
+                name: 'Use Panoplies', type: 'Short Skill — Attack, Scenario',
+                requirements: ['Trooper must be in Silhouette contact with a Panoply.'],
+                effects: [
+                    'Succeed at WIP Roll to gain D-Charges OR roll on the Panoply Chart for one weapon/equipment.',
+                    'Once successful, that Trooper cannot use this Panoply again.',
+                    'Troopers with Booty skip the WIP Roll.',
+                    'Can spend Short Skill in Silhouette contact to cancel Unloaded State.',
+                    'If you roll a duplicate, re-roll.'
+                ]
+            }
+        ],
+        extraRulesHtml: `
+            <h4>Common Rules of Prototypes</h4>
+            <ul>
+                <li>Cannot declare Move as the second Short Skill of an Order (exception: Baggage).</li>
+                <li>Only Models (not Markers) can carry Prototypes.</li>
+                <li>Token must always stay on the table, in Silhouette contact with the carrier.</li>
+                <li>If carrier enters any Null State, they drop the Prototype (move slightly out of contact).</li>
+                <li>Prototype Tokens do not block movement or LoF.</li>
+            </ul>
+            <h4>Panoply Chart</h4>
+            <div class="panoply-grid">
+                <span class="pg-num">1-2</span><span>+1 ARM</span><span class="pg-num">13</span><span>Panzerfaust</span>
+                <span class="pg-num">3-4</span><span>Light Flamethrower</span><span class="pg-num">14</span><span>Monofilament CCW</span>
+                <span class="pg-num">5-6</span><span>Grenades</span><span class="pg-num">15</span><span>MOV 8-4</span>
+                <span class="pg-num">7-8</span><span>DA CCW</span><span class="pg-num">16</span><span>TAG: BS Attack (Shock) / Other: MULTI Rifle</span>
+                <span class="pg-num">9</span><span>Multispectral Visor L1</span><span class="pg-num">17</span><span>MULTI Sniper Rifle</span>
+                <span class="pg-num">10</span><span>EXP CCW</span><span class="pg-num">18</span><span>TAG: Immunity (ARM) / Other: +4 ARM</span>
+                <span class="pg-num">11</span><span>Adhesive Launcher Rifle</span><span class="pg-num">19</span><span>Mimetism (-6)</span>
+                <span class="pg-num">12</span><span>TAG: Immunity (AP) / Other: +2 ARM</span><span class="pg-num">20</span><span>TAG: BS Attack (+1B) / Other: HMG</span>
+            </div>
+        `,
+        mapData: { type: 'standard', objectives: [
+            { type: 'objective', x: 0.25, y: 0.5, label: 'Prototype', edgeDist: '12" from edge' },
+            { type: 'objective', x: 0.75, y: 0.5, label: 'Prototype', edgeDist: '12" from edge' },
+            { type: 'panoply', x: 0.5, y: 0.25, label: 'Panoply A', edgeDist: 'Front of DZ A' },
+            { type: 'panoply', x: 0.5, y: 0.75, label: 'Panoply B', edgeDist: 'Front of DZ B' }
+        ], exclusionZone: true }
+    },
+    {
+        id: 'critical_intervention', name: 'Critical Intervention', category: 'its',
+        tacticalSupport: 1, reinforcements: false,
+        hvts: 1, classifiedCount: 1, retreat: true,
+        deployment: DEPLOYMENT_STANDARD, deployType: 'standard',
+        objectives: [
+            { text: '[ATTACKER] Unlock the Data Console', pts: '1 OP' },
+            { text: '[ATTACKER] Extract the Data Pack', pts: '2 OP' },
+            { text: '[ATTACKER] Trooper that Extracted is not Killed at end of game', pts: '1 OP' },
+            { text: '[ATTACKER] Trooper with Data Pack in your DZ, not Null State', pts: '2 OP' },
+            { text: '[ATTACKER] Dominate the Server Room', pts: '2 OP' },
+            { text: '[ATTACKER] Kill Army Points threshold (varies by game size)', pts: '1 OP' },
+            { text: '[DEFENDER] Prevent Attacker from Unlocking Data Console', pts: '1 OP' },
+            { text: '[DEFENDER] Prevent Attacker from Extracting Data Pack', pts: '3 OP' },
+            { text: '[DEFENDER] Kill the Trooper that Extracted the Data Pack', pts: '2 OP' },
+            { text: '[DEFENDER] Dominate the Server Room', pts: '3 OP' },
+            { text: '[DEFENDER] Kill Army Points threshold (varies by game size)', pts: '2 OP' },
+        ],
+        classified: 'Each player has 1 Classified Objective (1 OP).',
+        deployNotes: 'Cannot deploy inside Server Room. Attacker: Exclusion Zone 4" either side of central line (no AD/Superior Deployment).',
+        sharedRules: ['specialist_troops', 'dominate_zo', 'shasvastii', 'baggage', 'killing', 'intelcom_card', 'end_of_mission'],
+        specialRules: `
+            <h4>Attacker and Defender</h4>
+            <p>Player with <strong>first Turn = Attacker</strong>. Player with <strong>second Turn = Defender</strong>. Each has different Main Objectives.</p>
+            <p>Before Deployment, the Defender may spend 1 Command Token to: Activate the Server Room Defense System, OR ignore Deployment Restriction for the Server Room (deploy up to 65pts of Troops anywhere in the Server Room).</p>
+
+            <h4>Server Room</h4>
+            <p>Zone of Operations (ZO) in center of table: 8×8". Walls of infinite height blocking LoF. Four Gates (one per wall), open at game start. Represented by Wide Gate Tokens.</p>
+
+            <h4>Server Room Defense System</h4>
+            <p>2 Armed Turrets inside the Server Room in different corners. If Defense System is active, they react with BS/CC Attack to any Order by an active Enemy Model (not Markers) in LoF or Silhouette contact.</p>
+            <table class="profile-table"><thead><tr><th>MOV</th><th>CC</th><th>BS</th><th>PH</th><th>WIP</th><th>ARM</th><th>BTS</th><th>STR</th><th>S</th></tr></thead>
+            <tbody><tr><td>—</td><td>5</td><td>10</td><td>—</td><td>11</td><td>2</td><td>3</td><td>1</td><td>2</td></tr></tbody></table>
+            <p>Equipment: 360° Visor. Skills: Total Reaction. BS: Combi Rifle. CC: PARA CC Weapon (-3).</p>
+
+            <h4>Data Console & Data Pack</h4>
+            <p>1 Data Console in center of table (Console A Token, 40mm). Contains 1 Data Pack. Trooper with Data Pack must always be a Model (not Marker). If carrier enters Dead State, remove Data Pack Token from game.</p>
+
+            <h4>Inhibitor Antenna</h4>
+            <p>Placed next to one of the outer corners of the Server Room in the Defender's half. Used to: Unlock Data Console (Attacker only), OR Activate/deactivate Defense System.</p>
+        `,
+        skills: [
+            {
+                name: 'Extract Data Pack (Attacker Only)', type: 'Short Skill — Attack, Scenario',
+                requirements: ['Only Specialist Troops.', 'Must be in Silhouette contact with the Data Console.'],
+                effects: ['Normal WIP-6 Roll to Extract (WIP without -6 if Console is Unlocked).', 'On success, place DATA PACK Token beside the Trooper. Can retry on failure.']
+            },
+            {
+                name: 'Use Inhibitor Antenna', type: 'Short Skill — Attack, Scenario',
+                requirements: ['Only Specialist Troops.', 'Must be in Silhouette contact with the Inhibitor Antenna.'],
+                effects: ['Choose: Unlock Data Console (Attacker only), OR Activate/deactivate Defense System.', 'Normal WIP Roll. Can retry on failure.']
+            }
+        ],
+        mapData: { type: 'standard', dzLabelA: 'DZ A (ATTACKER)', dzLabelB: 'DZ B (DEFENDER)', objectives: [
+            { type: 'room', x: 0.5, y: 0.5, label: 'Server Room (8×8")', labelPos: 'top' },
+            { type: 'console', x: 0.5, y: 0.5, label: 'Data Console' },
+            { type: 'antenna', x: 0.44, y: 0.62, label: 'Antenna' }
+        ], exclusionZone: true }
+    },
+    {
+        id: 'crossing_lines', name: 'Crossing Lines', category: 'its',
+        tacticalSupport: 0, reinforcements: false,
+        hvts: 1, classifiedCount: 0, retreat: true,
+        deployment: DEPLOYMENT_STANDARD, deployType: 'crossing',
+        objectives: [
+            { text: 'End of each Game Round: Dominate a Dead Zone', pts: '1 OP each' },
+            { text: 'End of game: Dominate both Dead Zones', pts: '2 OP' },
+            { text: 'End of game: have an Activated Antenna', pts: '1 OP each' },
+        ],
+        classified: 'No Classified Objectives.',
+        deployNotes: 'Each player has a rear DZ AND a second DZ within the central strip in the other half. Up to 75pts may deploy in the Central Strip DZ. Cannot deploy in Silhouette contact with Antennas. Exclusion Zones between DZs — no AD or Superior Deployment (except Impersonation).',
+        sharedRules: ['specialist_troops', 'dominate_zo', 'shasvastii', 'baggage', 'secure_hvt_not_used', 'end_of_mission'],
+        specialRules: `
+            <h4>Dead Zones</h4>
+            <p>Two Dead Zones, one in each half of the table — the areas between the Deployment Zones. Each is a Zone of Operations (ZO).</p>
+
+            <h4>Antennas</h4>
+            <p>2 Antennas on the central line: 12" from table edges (300+), 8" (200/250), 6" (150). Represented by Transmission Antenna Tokens (40mm).</p>
+
+            <h4>Superior Deployment</h4>
+            <p>With the exception of Impersonation, Special Skills with the Superior Deployment Label cannot be used in this scenario.</p>
+        `,
+        skills: [
+            {
+                name: 'Activate Antenna', type: 'Short Skill — Attack, Scenario',
+                requirements: ['Only Specialist Troops.', 'Must be in Silhouette contact with an Antenna.'],
+                effects: ['Normal WIP Roll. Can retry on failure.', 'An Activated Antenna can be re-Activated by the other player (flips control).', 'Use Player A/B Tokens to mark.']
+            }
+        ],
+        mapData: { type: 'crossing', objectives: [
+            { type: 'antenna', x: 0.25, y: 0.5, label: 'Antenna', edgeDist: '12" from edge' },
+            { type: 'antenna', x: 0.75, y: 0.5, label: 'Antenna', edgeDist: '12" from edge' }
+        ] }
+    },
+    {
+        id: 'evacuation', name: 'Evacuation', category: 'its',
+        tacticalSupport: 2, reinforcements: true,
+        hvts: 2, classifiedCount: 2, retreat: true,
+        deployment: DEPLOYMENT_STANDARD, deployType: 'standard',
+        objectives: [
+            { text: 'End of game: have an Extracted Civilian', pts: '1 OP each' },
+            { text: 'End of game: have an Extracted enemy HVT', pts: '1 OP each' },
+        ],
+        classified: 'Each player has 2 Classified Objectives (2 OP each).',
+        deployNotes: 'Cannot deploy in Silhouette contact with a Civilian.',
+        sharedRules: ['specialist_troops', 'operational_learning', 'end_of_mission'],
+        specialRules: `
+            <h4>Civilians</h4>
+            <p>4 Civilians total, 2 in each table half. Placed 16" from rear of DZ and 6" from table edge (12"/6" for 150pt). Cannot be placed on/inside scenery — accessible locations only.</p>
+
+            <h4>Multiple HVTs</h4>
+            <p>Each player deploys <strong>two</strong> HVTs, following normal HVT rules.</p>
+
+            <h4>Extraction Consoles</h4>
+            <p>2 Extraction Consoles on the central line: 16" from table edges (300+), 12" (200/250), 8" (150). Represented by Console A Tokens (40mm).</p>
+        `,
+        skills: [
+            {
+                name: 'Activate Extraction Console', type: 'Short Skill — Attack, Scenario',
+                requirements: [
+                    'Only Specialist Troops.',
+                    'Must be in Silhouette contact with an Extraction Console.',
+                    'Must be CivEvacing a Civilian or Enemy HVT.',
+                    'Cannot be declared during the first Game Round.'
+                ],
+                effects: ['Normal WIP Roll. Can retry on failure.', 'On success, choose one CivEvaced Civilian or Enemy HVT — it has been Extracted and is removed from the table.']
+            }
+        ],
+        mapData: { type: 'standard', objectives: [
+            { type: 'console', x: 0.33, y: 0.5, label: 'Extraction Console', edgeDist: '16" from edge' },
+            { type: 'console', x: 0.67, y: 0.5, label: 'Extraction Console', edgeDist: '16" from edge' },
+            { type: 'civilian', x: 0.125, y: 0.33, label: 'Civilian', edgeDist: '6" from edge' },
+            { type: 'civilian', x: 0.875, y: 0.33, label: 'Civilian', edgeDist: '6" from edge' },
+            { type: 'civilian', x: 0.125, y: 0.67, label: 'Civilian' },
+            { type: 'civilian', x: 0.875, y: 0.67, label: 'Civilian' }
+        ] }
+    },
+    {
+        id: 'hardlock', name: 'Hardlock', category: 'its',
+        tacticalSupport: 1, reinforcements: true,
+        hvts: 1, classifiedCount: 1, retreat: true,
+        deployment: DEPLOYMENT_STANDARD, deployType: 'standard',
+        objectives: [
+            { text: 'End of each Game Round: Control the Enemy Beacon', pts: '1 OP' },
+            { text: 'End of game: your Beacon is not Controlled by the enemy', pts: '1 OP' },
+            { text: 'End of game: have more Activated Consoles than adversary', pts: '2 OP' },
+            { text: 'End of game: have an Activated Console', pts: '1 OP each' },
+        ],
+        classified: 'Each player has 1 Classified Objective (1 OP).',
+        deployNotes: 'Cannot deploy in Silhouette contact with Beacons or Consoles.',
+        sharedRules: ['specialist_troops', 'end_of_mission'],
+        specialRules: `
+            <h4>Beacons</h4>
+            <p>2 Beacons (1 per player) in the middle of the front edge of each Deployment Zone. The Enemy Beacon is the one on the edge of the enemy DZ. Represented by Beacon Tokens (25mm).</p>
+            <h4>Control an Enemy Beacon</h4>
+            <p>Controlled if that player is the only one with a Trooper (Model, not Marker) in Silhouette contact. No enemy Troopers in contact. Null State cannot.</p>
+            <h4>Consoles</h4>
+            <p>3 Consoles on the central line: one in the center, others 12" from table edges (300+), 8" (200/250), 6" (150). Console A Tokens (40mm).</p>
+        `,
+        skills: [
+            {
+                name: 'Pick Up Beacon', type: 'Short Skill — Attack, Scenario',
+                requirements: ['Must have an Activated Console.', 'Be in Silhouette contact with a friendly Trooper carrying an Enemy Beacon, OR in Silhouette contact with an Enemy Beacon with no enemy Troops in non-Null State in contact.'],
+                effects: ['No Roll needed. Pick up the Enemy Beacon.', 'Must follow Common Rules of Beacons.']
+            },
+            {
+                name: 'Activate Console', type: 'Short Skill — Attack, Scenario',
+                requirements: ['Only Specialist Troops.', 'Must be in Silhouette contact with a Console.'],
+                effects: ['Normal WIP Roll. Can retry on failure.', 'Can be re-Activated by the other player (flips control).', 'Use Player A/B Tokens to mark.']
+            }
+        ],
+        extraRulesHtml: `
+            <h4>Common Rules of Beacons</h4>
+            <ul>
+                <li>Each Model can carry max 1 Beacon (Baggage: up to 2).</li>
+                <li>Only Models (not Markers) can carry Beacons.</li>
+                <li>Beacon must always stay on the table, in Silhouette contact with carrier.</li>
+                <li>If carrier enters Null State, drop the Beacon (move slightly out of contact).</li>
+                <li>Beacons do not block movement or LoF.</li>
+            </ul>
+        `,
+        mapData: { type: 'standard', objectives: [
+            { type: 'beacon', x: 0.5, y: 0.25, label: 'Beacon A', edgeDist: 'Front of DZ A' },
+            { type: 'beacon', x: 0.5, y: 0.75, label: 'Beacon B', edgeDist: 'Front of DZ B' },
+            { type: 'console', x: 0.25, y: 0.5, label: 'Console', edgeDist: '12" from edge' },
+            { type: 'console', x: 0.5, y: 0.5, label: 'Console' },
+            { type: 'console', x: 0.75, y: 0.5, label: 'Console', edgeDist: '12" from edge' }
+        ] }
+    },
+    {
+        id: 'last_launch', name: 'Last Launch', category: 'its',
+        tacticalSupport: 2, reinforcements: true,
+        hvts: 1, classifiedCount: 3, retreat: false,
+        flavor: 'Based on the Dante Harrower\'s Scenario from the Loss of Lieutenant custom mission challenge.',
+        deployment: DEPLOYMENT_STANDARD, deployType: 'standard',
+        objectives: [
+            { text: 'End of game: Extracted more Army Points than adversary', pts: '2 OP' },
+            { text: 'End of game: Extracted more Specialist Troops than adversary', pts: '2 OP' },
+            { text: 'End of game: Killed more Specialist Troops than adversary', pts: '2 OP' },
+            { text: 'End of game: Killed same number of Specialist Troops as adversary', pts: '1 OP' },
+            { text: 'End of game: Dominate the Launching Tower', pts: '1 OP' },
+        ],
+        classified: 'Each player has 3 Classified Objectives (1 OP each).',
+        deployNotes: 'Cannot deploy inside the Launching Tower.',
+        sharedRules: ['specialist_troops', 'dominate_zo', 'shasvastii', 'baggage', 'killing', 'no_quarter'],
+        specialRules: `
+            <h4>ID Scanners</h4>
+            <p>2 ID Scanners on the central line, 8" from table edges (4" for 150pt). Represented by Tech-Coffin Tokens (40mm).</p>
+            <h4>Launching Tower (ZO)</h4>
+            <p>Zone of Operations in center of table: 8×8". Walls of infinite height blocking LoF. Four Wide Gates, open at game start.</p>
+            <h4>ID Checker</h4>
+            <p>1 ID Checker in the center of the Launching Tower. Console A Token (40mm).</p>
+            <h4>Baggage (Extra)</h4>
+            <p>Each Trooper with Baggage that is Extracted provides an additional 20 points to the player's Extracted Army Points.</p>
+            <h4>Lieutenant</h4>
+            <p>During a player's Tactical Phase, if their current Lieutenant has been extracted, apply the Loss of Lieutenant rule.</p>
+        `,
+        skills: [
+            {
+                name: 'Download ID', type: 'Short Skill — Attack, Scenario',
+                requirements: ['Only Specialist Troops.', 'Must be in Silhouette contact with an ID Scanner.'],
+                effects: ['Normal WIP Roll. On success, place an ID Token beside the Trooper. Can retry on failure.']
+            },
+            {
+                name: 'Swap ID', type: 'Short Skill — Attack, Scenario',
+                requirements: ['Must be in Silhouette contact with an Allied Trooper with an ID Token.'],
+                effects: ['No Roll needed. Place the ID Token next to the Trooper that declared this Skill.']
+            },
+            {
+                name: 'Extract Identified Trooper', type: 'Short Skill — Attack, Scenario',
+                requirements: ['Must have an ID Token.', 'Must be in Silhouette contact with the ID Checker.', 'Cannot be part of a Coordinated Order.'],
+                effects: [
+                    'No Roll needed. Remove the Trooper (and any Peripherals inside the Launching Tower) from the game table.',
+                    'Add removed Troopers\' points to Extracted Army Points (Open Information).',
+                    'Removed Troopers still count toward Victory Points even if they entered Null/Dead State during the extraction Order.',
+                    'Troopers that have been Extracted are never considered Killed.'
+                ]
+            }
+        ],
+        extraRulesHtml: `
+            <h4>Common Rules of ID Tokens</h4>
+            <ul>
+                <li>A Trooper with an ID Token cannot enter or be in any Marker State.</li>
+                <li>A Trooper can only have a single ID Token at a time.</li>
+                <li>If a Trooper with an ID Token enters Dead State, remove their ID Token.</li>
+            </ul>
+        `,
+        mapData: { type: 'standard', objectives: [
+            { type: 'room', x: 0.5, y: 0.5, label: 'Launching Tower (8×8")' },
+            { type: 'console', x: 0.5, y: 0.5, label: 'ID Checker' },
+            { type: 'techcoffin', x: 0.17, y: 0.5, label: 'ID Scanner', edgeDist: '8" from edge' },
+            { type: 'techcoffin', x: 0.83, y: 0.5, label: 'ID Scanner', edgeDist: '8" from edge' }
+        ] },
+        endNotes: ['End of mission: third Game Round. No Quarter (Retreat! not applied).']
+    },
+    {
+        id: 'outbreak', name: 'Outbreak', category: 'its',
+        tacticalSupport: 0, reinforcements: true,
+        hvts: 0, classifiedCount: 0, retreat: true,
+        deployment: DEPLOYMENT_CORNER, deployType: 'corner',
+        objectives: [
+            { text: 'End of game: have Scanned one Infected', pts: '1 OP each (max 3)' },
+            { text: 'End of game: Stabilized more Infected than adversary', pts: '2 OP' },
+            { text: 'End of game: Stabilized the Alpha Infected', pts: '1 OP' },
+            { text: 'End of game: CivEvacing more Stabilized Infected than adversary', pts: '2 OP' },
+            { text: 'End of game: CivEvacing the Stabilized Alpha Infected', pts: '1 OP' },
+            { text: 'End of game: Secured at least 1 Infected', pts: '1 OP' },
+        ],
+        classified: 'No Classified Objectives.',
+        deployNotes: 'Corner deployment. Cannot deploy in Silhouette contact with an Infected. Max 1 Infected CivEvaced per Trooper.',
+        sharedRules: ['end_of_mission'],
+        specialRules: `
+            <h4>Infected</h4>
+            <p>5 Infected Civilians total. Alpha Infected is placed in the center. Before Deployment, each player places 2 Infected totally inside the adversary's half, at least 4" outside the adversary's DZ and 8" apart. Cannot be placed on/inside scenery. Player who kept Deployment places first.</p>
+
+            <h4>Stabilization Zones</h4>
+            <p>2 Stabilization Zones (Circular Templates). Before Deployment, after placing Infected, each player places one totally inside their DZ. Player who kept Deployment places first.</p>
+            <p>At end of each Player Turn, any Infected being CivEvaced and totally inside a Stabilization Zone (with the CivEvacing Trooper also totally inside) is Stabilized. A Stabilized Infected cannot be Stabilized by the other player.</p>
+
+            <h4>Doctor and Paramedic Bonus</h4>
+            <p>Troopers with Doctor or Paramedic have <strong>+1SD MOD</strong> to WIP Rolls for Stabilize, Scan, or CivEvac on an Infected.</p>
+
+            <h4>Secure Infected</h4>
+            <p>At end of game, an Infected that has been Stabilized by the player (or is being CivEvaced by their Trooper) is Secured if its Zone of Control is free of enemy Troopers (not counting Null State).</p>
+        `,
+        skills: [
+            {
+                name: 'Stabilize Infected', type: 'Short Skill — Attack, Scenario',
+                requirements: ['Only Doctor, Paramedic, or Specialist Operative.', 'Must be in Silhouette contact with an Infected, or with an allied Trooper CivEvacing an Infected.'],
+                effects: ['Normal WIP Roll. Can retry on failure.', 'Use Player A/B Tokens to mark Stabilized.']
+            },
+            {
+                name: 'Scan Infected', type: 'Short Skill — Attack, Scenario',
+                requirements: ['Only Doctor, Paramedic, or Specialist Operative.', 'Must have an Infected or Stabilized Infected within LoF and Zone of Control.'],
+                effects: ['Normal WIP Roll. Can retry on failure.', 'Can be Scanned by both players. Cannot be Scanned again by the same player.']
+            }
+        ],
+        extraNotes: ['HVT & Classified Deck not used. Secure Treasure not used.'],
+        mapData: { type: 'corner', diag: 'tl-br', objectives: [
+            { type: 'civilian', x: 0.5, y: 0.5, label: 'Alpha Infected' }
+        ] }
+    },
+    {
+        id: 'provisioning', name: 'Provisioning', category: 'its',
+        tacticalSupport: 1, reinforcements: true,
+        hvts: 1, classifiedCount: 1, retreat: true,
+        deployment: DEPLOYMENT_CORNER, deployType: 'corner',
+        objectives: [
+            { text: 'End of game: Control a Supply Box', pts: '1 OP each' },
+            { text: 'End of game: Control more Supply Boxes in your Safe Area than adversary in theirs', pts: '3 OP' },
+            { text: 'End of game: Control same number of Supply Boxes in your Safe Area as adversary in theirs (only if ≥1)', pts: '1 OP' },
+            { text: 'End of game: adversary does not Control any Supply Boxes in their Safe Area', pts: '2 OP' },
+        ],
+        classified: 'Each player has 1 Classified Objective (1 OP).',
+        deployNotes: 'Corner deployment. Cannot deploy in Silhouette contact with a Tech-Coffin.',
+        sharedRules: ['specialist_troops', 'operational_learning', 'end_of_mission'],
+        specialRules: `
+            <h4>Tech-Coffins</h4>
+            <p>3 Tech-Coffins along the central diagonal: one in center, others 16" away (12" for 200/250, 8" for 150). Each contains 1 Supply Box except the central one which contains <strong>2 Supply Boxes</strong>. Represented by Tech-Coffin Tokens (40mm).</p>
+
+            <h4>Supply Boxes</h4>
+            <p>Represented by Supply Box Tokens (25mm).</p>
+
+            <h4>Controlling Supply Boxes</h4>
+            <p>Controlled if, at end of game, a player has a Model (not Marker) carrying it, not in Null State, not in Silhouette contact with any enemy Model. Supply Boxes in a player's Safe Area are Controlled by that player unless an enemy Specialist is carrying it.</p>
+
+            <h4>Safe Area</h4>
+            <p>Each player places one Circular Template before Deployment, completely outside any DZs, cannot overlap another Safe Area. Player who kept Deployment places first.</p>
+            <p>Any Trooper may put down a Supply Box in a Safe Area by spending one Short Skill (no Roll). Supply Box must be totally inside the Safe Area. Only Specialist Troops may pick up a Supply Box from the enemy's Safe Area.</p>
+        `,
+        skills: [
+            {
+                name: 'Extract Supply Boxes', type: 'Short Skill — Attack, Scenario',
+                requirements: ['Only Specialist Troops.', 'Must be in base contact with a Tech-Coffin.'],
+                effects: ['Normal WIP Roll. On success, place SUPPLY BOX Token beside the Trooper. Can retry on failure.']
+            },
+            {
+                name: 'Pick Up Supply Boxes', type: 'Short Skill — Attack, Scenario',
+                requirements: ['Be in Silhouette contact with allied Trooper in Normal State with a Supply Box, OR in Silhouette contact with an uncarried Supply Box.', 'If in enemy Safe Area: must be a Specialist Troop.'],
+                effects: ['No Roll needed (but WIP-3 if in enemy Safe Area).', 'Must follow Common Rules of Supply Boxes.']
+            }
+        ],
+        extraRulesHtml: `
+            <h4>Common Rules of Supply Boxes</h4>
+            <ul>
+                <li>Each Model can carry max 1 Supply Box (Baggage: up to 2).</li>
+                <li>Only Models (not Markers) can carry Supply Boxes.</li>
+                <li>Token must always stay on the table, in Silhouette contact with carrier.</li>
+                <li>If carrier enters Null State, drop the Supply Box.</li>
+                <li>Supply Box Tokens don't block movement or LoF.</li>
+            </ul>
+        `,
+        mapData: { type: 'corner', diag: 'tl-br', objectives: [
+            { type: 'techcoffin', x: 0.5, y: 0.5, label: 'Tech-Coffin (×2)', edgeDist: 'Center' },
+            { type: 'techcoffin', x: 0.27, y: 0.27, label: 'Tech-Coffin', edgeDist: '16" from center' },
+            { type: 'techcoffin', x: 0.73, y: 0.73, label: 'Tech-Coffin', edgeDist: '16" from center' }
+        ] }
+    },
+
+    // ── DIRECT ACTION ──
+    {
+        id: 'annihilation', name: 'Annihilation', category: 'da',
+        tacticalSupport: 0, reinforcements: true,
+        hvts: 0, classifiedCount: 0, retreat: false,
+        deployment: DEPLOYMENT_STANDARD, deployType: 'standard',
+        objectives: [
+            { text: 'Kill Army Points (tier 1 threshold)', pts: '1 OP' },
+            { text: 'Kill Army Points (tier 2 threshold)', pts: '3 OP' },
+            { text: 'Kill Army Points (tier 3 threshold)', pts: '4 OP' },
+            { text: 'Surviving Victory Points (tier 1 threshold)', pts: '1 OP' },
+            { text: 'Surviving Victory Points (tier 2 threshold)', pts: '3 OP' },
+            { text: 'Surviving Victory Points (tier 3 threshold)', pts: '4 OP' },
+            { text: 'Kill the enemy Lieutenant', pts: '2 OP' },
+        ],
+        classified: 'None.',
+        deployNotes: 'Standard deployment.',
+        sharedRules: ['killing', 'no_quarter', 'hvt_classified_not_used'],
+        specialRules: `
+            <h4>Kill Thresholds</h4>
+            <table class="rules-table threshold-table"><thead><tr><th>OP</th><th>150</th><th>200</th><th>250</th><th>300</th><th>350</th><th>400</th></tr></thead><tbody>
+            <tr><td class="op-val">1</td><td>40–75</td><td>50–100</td><td>65–125</td><td>75–150</td><td>85–175</td><td>100–200</td></tr>
+            <tr><td class="op-val">3</td><td>76–125</td><td>101–150</td><td>126–200</td><td>151–250</td><td>176–274</td><td>201–300</td></tr>
+            <tr><td class="op-val">4</td><td>&gt;125</td><td>&gt;150</td><td>&gt;200</td><td>&gt;250</td><td>&gt;275</td><td>&gt;300</td></tr>
+            </tbody></table>
+            <h4>Survival Thresholds (Surviving VP)</h4>
+            <table class="rules-table threshold-table"><thead><tr><th>OP</th><th>150</th><th>200</th><th>250</th><th>300</th><th>350</th><th>400</th></tr></thead><tbody>
+            <tr><td class="op-val">1</td><td>40–75</td><td>50–100</td><td>65–125</td><td>75–150</td><td>85–175</td><td>100–200</td></tr>
+            <tr><td class="op-val">3</td><td>76–125</td><td>101–150</td><td>126–200</td><td>151–250</td><td>176–274</td><td>201–300</td></tr>
+            <tr><td class="op-val">4</td><td>&gt;125</td><td>&gt;150</td><td>&gt;200</td><td>&gt;250</td><td>&gt;275</td><td>&gt;300</td></tr>
+            </tbody></table>
+            <p class="text-note">+ 2 OP for killing the enemy Lieutenant.</p>
+        `,
+        skills: [],
+        mapData: { type: 'standard', objectives: [] },
+        endNotes: ['End of mission: third Game Round. No Quarter (Retreat! not applied).']
+    },
+    {
+        id: 'battleground', name: 'Battleground', category: 'da',
+        tacticalSupport: 0, reinforcements: false,
+        hvts: 0, classifiedCount: 0, retreat: true,
+        deployment: DEPLOYMENT_STANDARD, deployType: 'standard',
+        objectives: [
+            { text: 'End of game: dominate nearest Sector to your DZ', pts: '1 OP' },
+            { text: 'End of game: dominate the central Sector', pts: '3 OP' },
+            { text: 'End of game: dominate the farthest Sector from your DZ', pts: '4 OP' },
+            { text: 'Kill the enemy Key Ops', pts: '2 OP' },
+            { text: 'End of game: Threaten the enemy Key Ops (alternative)', pts: '1 OP' },
+        ],
+        classified: 'None.',
+        deployNotes: 'Standard deployment.',
+        sharedRules: ['dominate_zo', 'shasvastii', 'baggage', 'killing', 'key_ops', 'hvt_classified_not_used', 'end_of_mission'],
+        specialRules: `
+            <h4>Sectors (ZO)</h4>
+            <p>At end of game, 3 Sectors are marked: 8" deep strips (4" for 150pt). Two are 4" from the center line (one each side), the third is 8" in the central area.</p>
+            <h4>Threaten Key Ops</h4>
+            <p>A Key Ops is Threatened if the opponent has at least one Trooper (Model, not Marker) in a non-Null state inside the Key Ops' Zone of Control.</p>
+        `,
+        skills: [],
+        mapData: { type: 'standard', objectives: [] }
+    },
+    {
+        id: 'cutthroat', name: 'Cutthroat', category: 'da',
+        tacticalSupport: 0, reinforcements: true,
+        hvts: 0, classifiedCount: 0, retreat: false,
+        deployment: DEPLOYMENT_WIDE, deployType: 'wide',
+        objectives: [
+            { text: 'Kill more Army Points than adversary', pts: '3 OP' },
+            { text: 'Kill same number of Lieutenants as adversary (if ≥1)', pts: '2 OP' },
+            { text: 'Kill more Lieutenants than adversary', pts: '3 OP' },
+            { text: 'Kill the enemy Key Ops', pts: '1 OP' },
+            { text: 'Kill more enemy Troopers with your Key Ops than adversary does with theirs', pts: '3 OP' },
+        ],
+        classified: 'None.',
+        deployNotes: 'Wide deployment zones (16" depth at 300+).',
+        sharedRules: ['killing', 'key_ops', 'no_quarter', 'hvt_classified_not_used'],
+        specialRules: `
+            <h4>Reinforced Tactical Link</h4>
+            <p>Loss of Lieutenant rule does not apply. Lieutenant identity is always <strong>Open Information</strong>. Must indicate which Marker is the Lieutenant if in Marker State. Lieutenant must be placed on table at start of first Game Round. Players may not deploy Lieutenants in Hidden Deployment. If the player lacks a Lieutenant during their Tactical Phase, they must name a new one without Order expenditure (also Open Information).</p>
+            <h4>Key Ops Killing</h4>
+            <p>Key Ops counts as Killing a target if they cause the target to be in a Null State at end of game, or cause the loss of one or more Wounds/STR during the Order in which the target enters Dead State.</p>
+            <h4>Lieutenant Killing</h4>
+            <p>A Lieutenant is considered Killed if they were a Lieutenant at any time during the game, and they enter Dead State or are in a Null State at end of game.</p>
+        `,
+        skills: [],
+        mapData: { type: 'wide', objectives: [] },
+        endNotes: ['End of mission: third Game Round. No Quarter (Retreat! not applied).']
+    },
+    {
+        id: 'superiority', name: 'Superiority', category: 'da',
+        tacticalSupport: 0, reinforcements: false,
+        hvts: 0, classifiedCount: 0, retreat: true,
+        deployment: DEPLOYMENT_STANDARD, deployType: 'standard',
+        objectives: [
+            { text: 'End of each Game Round: dominate more Quadrants than adversary', pts: '2 OP' },
+            { text: 'End of game: have a Hacked Console', pts: '1 OP each (max 3)' },
+            { text: 'End of game: have a Dominant Key Ops', pts: '+1 OP' },
+        ],
+        classified: 'None.',
+        deployNotes: 'Standard deployment.',
+        sharedRules: ['specialist_troops', 'dominate_zo', 'shasvastii', 'baggage', 'key_ops', 'operational_learning', 'hvt_classified_not_used', 'end_of_mission'],
+        specialRules: `
+            <h4>Quadrants (ZO)</h4>
+            <p>At end of each Game Round, the table is divided into 4 Quadrants. Each is a ZO.</p>
+            <h4>Consoles</h4>
+            <p>4 Consoles, one in the center of each Quadrant.</p>
+            <h4>Dominant Key Ops</h4>
+            <p>Players who have their Key Ops in any non-Null State in a ZO Dominated by them have a Dominant Key Ops.</p>
+        `,
+        skills: [
+            {
+                name: 'Hack Consoles', type: 'Short Skill — Attack, Scenario',
+                requirements: ['Only Specialist Troops.', 'Must be in Silhouette contact with a Console.'],
+                effects: ['Normal WIP Roll. Can retry on failure.', 'A Hacked Console can be Hacked again by the other player — both players then count it as Hacked.']
+            }
+        ],
+        mapData: { type: 'standard', objectives: [
+            { type: 'console', x: 0.25, y: 0.375, label: 'Console', edgeDist: 'Q1 center' },
+            { type: 'console', x: 0.75, y: 0.375, label: 'Console', edgeDist: 'Q2 center' },
+            { type: 'console', x: 0.25, y: 0.625, label: 'Console', edgeDist: 'Q3 center' },
+            { type: 'console', x: 0.75, y: 0.625, label: 'Console', edgeDist: 'Q4 center' }
+        ] }
+    },
+    {
+        id: 'uplink_center', name: 'Uplink Center', category: 'da',
+        tacticalSupport: 0, reinforcements: true,
+        hvts: 0, classifiedCount: 0, retreat: true,
+        deployment: DEPLOYMENT_WIDE, deployType: 'wide',
+        objectives: [
+            { text: 'End of game: have an Activated Communication Antenna', pts: '2 OP each' },
+            { text: 'End of game: Control a Communication Antenna', pts: '1 OP each' },
+            { text: 'End of game: Control the Tech-Coffin', pts: '3 OP' },
+            { text: 'End of game: have an Active Lieutenant', pts: '1 OP' },
+        ],
+        classified: 'None.',
+        deployNotes: 'Wide deployment (16" depth at 300+). Cannot deploy in Silhouette contact with Tech-Coffin or Communication Antennas.',
+        sharedRules: ['specialist_troops', 'operational_learning', 'hvt_classified_not_used', 'end_of_mission'],
+        specialRules: `
+            <h4>Communication Antennas</h4>
+            <p>2 on the central line: 12" from table edges (300+), 8" (200/250), 6" (150). Transmission Antenna Tokens (40mm).</p>
+            <h4>Control a Communication Antenna</h4>
+            <p>Controlled if the player is the only one with a Trooper (Model, not Marker) in Silhouette contact. No enemy in contact. Null State cannot.</p>
+            <h4>Tech-Coffin</h4>
+            <p>1 in center of table. Tech-Coffin Token (40mm). Controlled by the same rules as Communication Antennas.</p>
+            <h4>Active Lieutenant</h4>
+            <p>At end of game, a Lieutenant is Active if they are not in any Null, Isolated, or Immobilized State.</p>
+        `,
+        skills: [
+            {
+                name: 'Activate Communication Antenna', type: 'Short Skill — Attack, Scenario',
+                requirements: ['Only Specialist Troops.', 'Must be in Silhouette contact with a Communication Antenna.'],
+                effects: ['Normal WIP Roll. Can retry on failure.', 'Can be re-Activated by the other player (flips control).']
+            }
+        ],
+        mapData: { type: 'wide', objectives: [
+            { type: 'antenna', x: 0.25, y: 0.5, label: 'Comm. Antenna', edgeDist: '12" from edge' },
+            { type: 'antenna', x: 0.75, y: 0.5, label: 'Comm. Antenna', edgeDist: '12" from edge' },
+            { type: 'techcoffin', x: 0.5, y: 0.5, label: 'Tech-Coffin' }
+        ] }
+    },
+];
+
+
+// ═══════════════════════════════════════════
+// SVG Map Generator
+// ═══════════════════════════════════════════
+
+function generateMap(mission) {
+    if (!mission.mapData) return '';
+    const md = mission.mapData;
+    // Square map with margin for dimension labels
+    const margin = 36; // space for labels
+    const S = 400; // inner table size (square)
+    const W = S + margin * 2;
+    const H = S + margin * 2;
+
+    let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="font-family:'Exo 2',sans-serif">`;
+
+    // Table background (square)
+    svg += `<rect x="${margin}" y="${margin}" width="${S}" height="${S}" fill="#141925" stroke="#2a3348" stroke-width="1.5" rx="4"/>`;
+
+    const tx = margin, ty = margin;
+
+    // Helper: dimension label with arrows
+    function dimLabel(x1, y1, x2, y2, label, side) {
+        const midX = (x1+x2)/2, midY = (y1+y2)/2;
+        let textAttr = '';
+        if (side === 'left') {
+            textAttr = `x="${midX-6}" y="${midY}" text-anchor="end" dominant-baseline="middle" transform="rotate(-90 ${midX-6} ${midY})"`;
+        } else if (side === 'right') {
+            textAttr = `x="${midX+6}" y="${midY}" text-anchor="start" dominant-baseline="middle" transform="rotate(90 ${midX+6} ${midY})"`;
+        } else if (side === 'top') {
+            textAttr = `x="${midX}" y="${midY-5}" text-anchor="middle"`;
+        } else if (side === 'bottom') {
+            textAttr = `x="${midX}" y="${midY+12}" text-anchor="middle"`;
+        } else if (side === 'inner-left') {
+            textAttr = `x="${x1+3}" y="${midY}" text-anchor="start" dominant-baseline="middle" transform="rotate(-90 ${x1+3} ${midY})"`;
+        } else if (side === 'inner-right') {
+            textAttr = `x="${x2-3}" y="${midY}" text-anchor="end" dominant-baseline="middle" transform="rotate(-90 ${x2-3} ${midY})"`;
+        }
+        return `<text ${textAttr} fill="#6b7281" font-size="9" font-weight="600">${label}</text>`;
+    }
+
+    // Table edge dimensions (always show 48" for 300+ standard reference)
+    svg += dimLabel(tx, ty + S + 4, tx + S, ty + S + 4, '48"', 'bottom');
+    svg += dimLabel(tx - 4, ty, tx - 4, ty + S, '48"', 'left');
+
+    // Deployment zones
+    if (md.type === 'standard' || md.type === 'wide') {
+        const dzRatio = md.type === 'wide' ? 1/3 : 0.25;
+        const dzH = S * dzRatio;
+        const dzLabel = md.type === 'wide' ? '16"' : '12"';
+
+        // Zone A (top)
+        const dzLabelA = md.dzLabelA || 'DEPLOYMENT ZONE A';
+        const dzLabelB = md.dzLabelB || 'DEPLOYMENT ZONE B';
+        svg += `<rect x="${tx}" y="${ty}" width="${S}" height="${dzH}" fill="rgba(34,211,238,0.06)" stroke="rgba(34,211,238,0.3)" stroke-width="1" stroke-dasharray="4 2" rx="2"/>`;
+        svg += `<text x="${tx+8}" y="${ty+16}" fill="rgba(34,211,238,0.5)" font-size="10" font-weight="600">${dzLabelA}</text>`;
+        // Zone B (bottom)
+        svg += `<rect x="${tx}" y="${ty+S-dzH}" width="${S}" height="${dzH}" fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.3)" stroke-width="1" stroke-dasharray="4 2" rx="2"/>`;
+        svg += `<text x="${tx+8}" y="${ty+S-dzH+16}" fill="rgba(245,158,11,0.5)" font-size="10" font-weight="600">${dzLabelB}</text>`;
+
+        // DZ depth dimension (right side)
+        svg += dimLabel(tx + S + 4, ty, tx + S + 4, ty + dzH, dzLabel, 'right');
+        svg += dimLabel(tx + S + 4, ty + S - dzH, tx + S + 4, ty + S, dzLabel, 'right');
+
+    } else if (md.type === 'corner') {
+        const r = S * 0.5; // radius for 300+ (24")
+        const dzCorner = md.dzCorner || 'tr-bl'; // 'tr-bl' (default) or 'tl-br'
+        if (dzCorner === 'tl-br') {
+            // DZ A = top-left corner
+            svg += `<path d="M ${tx} ${ty} L ${tx+r} ${ty} A ${r} ${r} 0 0 1 ${tx} ${ty+r} Z" fill="rgba(34,211,238,0.06)" stroke="rgba(34,211,238,0.3)" stroke-width="1" stroke-dasharray="4 2"/>`;
+            svg += `<text x="${tx+8}" y="${ty+16}" fill="rgba(34,211,238,0.5)" font-size="10" font-weight="600">DZ A</text>`;
+            // DZ B = bottom-right corner
+            svg += `<path d="M ${tx+S} ${ty+S} L ${tx+S-r} ${ty+S} A ${r} ${r} 0 0 1 ${tx+S} ${ty+S-r} Z" fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.3)" stroke-width="1" stroke-dasharray="4 2"/>`;
+            svg += `<text x="${tx+S-8}" y="${ty+S-8}" fill="rgba(245,158,11,0.5)" font-size="10" font-weight="600" text-anchor="end">DZ B</text>`;
+            // Radius label
+            svg += `<line x1="${tx}" y1="${ty}" x2="${tx+r*0.7}" y2="${ty+r*0.7}" stroke="#6b7281" stroke-width="0.7" stroke-dasharray="3 2"/>`;
+            svg += `<text x="${tx+r*0.35+4}" y="${ty+r*0.35-4}" fill="#6b7281" font-size="8" font-weight="600">24"</text>`;
+        } else {
+            // DZ A = top-right corner
+            svg += `<path d="M ${tx+S} ${ty} L ${tx+S} ${ty+r} A ${r} ${r} 0 0 1 ${tx+S-r} ${ty} Z" fill="rgba(34,211,238,0.06)" stroke="rgba(34,211,238,0.3)" stroke-width="1" stroke-dasharray="4 2"/>`;
+            svg += `<text x="${tx+S-8}" y="${ty+16}" fill="rgba(34,211,238,0.5)" font-size="10" font-weight="600" text-anchor="end">DZ A</text>`;
+            // DZ B = bottom-left corner
+            svg += `<path d="M ${tx} ${ty+S} L ${tx} ${ty+S-r} A ${r} ${r} 0 0 1 ${tx+r} ${ty+S} Z" fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.3)" stroke-width="1" stroke-dasharray="4 2"/>`;
+            svg += `<text x="${tx+8}" y="${ty+S-8}" fill="rgba(245,158,11,0.5)" font-size="10" font-weight="600">DZ B</text>`;
+            // Radius label (along top-right arc)
+            svg += `<line x1="${tx+S}" y1="${ty}" x2="${tx+S-r*0.7}" y2="${ty+r*0.7}" stroke="#6b7281" stroke-width="0.7" stroke-dasharray="3 2"/>`;
+            svg += `<text x="${tx+S-r*0.35-4}" y="${ty+r*0.35-4}" fill="#6b7281" font-size="8" font-weight="600">24"</text>`;
+        }
+
+    } else if (md.type === 'crossing') {
+        const dzH = S * 0.25;
+        const stripH = S * 0.083;
+        // A rear (top)
+        svg += `<rect x="${tx}" y="${ty}" width="${S}" height="${dzH}" fill="rgba(34,211,238,0.06)" stroke="rgba(34,211,238,0.3)" stroke-width="1" stroke-dasharray="4 2" rx="2"/>`;
+        svg += `<text x="${tx+8}" y="${ty+14}" fill="rgba(34,211,238,0.5)" font-size="9" font-weight="600">DZ A (REAR)</text>`;
+        // A strip (in B's half, touching center line — extends downward from center)
+        svg += `<rect x="${tx}" y="${ty+S/2}" width="${S}" height="${stripH}" fill="rgba(34,211,238,0.04)" stroke="rgba(34,211,238,0.2)" stroke-width="1" stroke-dasharray="3 2" rx="2"/>`;
+        svg += `<text x="${tx+S-75}" y="${ty+S/2+11}" fill="rgba(34,211,238,0.4)" font-size="7.5" font-weight="600">DZ A (STRIP)</text>`;
+        // B rear (bottom)
+        svg += `<rect x="${tx}" y="${ty+S-dzH}" width="${S}" height="${dzH}" fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.3)" stroke-width="1" stroke-dasharray="4 2" rx="2"/>`;
+        svg += `<text x="${tx+8}" y="${ty+S-dzH+14}" fill="rgba(245,158,11,0.5)" font-size="9" font-weight="600">DZ B (REAR)</text>`;
+        // B strip (in A's half, touching center line — extends upward from center)
+        svg += `<rect x="${tx}" y="${ty+S/2-stripH}" width="${S}" height="${stripH}" fill="rgba(245,158,11,0.04)" stroke="rgba(245,158,11,0.2)" stroke-width="1" stroke-dasharray="3 2" rx="2"/>`;
+        svg += `<text x="${tx+8}" y="${ty+S/2-stripH+11}" fill="rgba(245,158,11,0.4)" font-size="7.5" font-weight="600">DZ B (STRIP)</text>`;
+
+        // Dead zone labels
+        svg += `<text x="${tx+S/2}" y="${ty+dzH+(S/2-stripH-dzH)/2+4}" fill="rgba(239,68,68,0.3)" font-size="9" font-weight="700" text-anchor="middle" letter-spacing="0.1em">DEAD ZONE</text>`;
+        svg += `<text x="${tx+S/2}" y="${ty+S/2+stripH+(S-dzH-(S/2+stripH))/2+4}" fill="rgba(239,68,68,0.3)" font-size="9" font-weight="700" text-anchor="middle" letter-spacing="0.1em">DEAD ZONE</text>`;
+
+        svg += dimLabel(tx + S + 4, ty, tx + S + 4, ty + dzH, '12"', 'right');
+        svg += dimLabel(tx + S + 4, ty + S - dzH, tx + S + 4, ty + S, '12"', 'right');
+    }
+
+    // Center line
+    if (md.type !== 'corner') {
+        svg += `<line x1="${tx}" y1="${ty+S/2}" x2="${tx+S}" y2="${ty+S/2}" stroke="#374151" stroke-width="1" stroke-dasharray="6 3"/>`;
+    } else {
+        const diagDir = md.diag || 'tr-bl'; // 'tr-bl' (default) or 'tl-br'
+        if (diagDir === 'tl-br') {
+            svg += `<line x1="${tx}" y1="${ty}" x2="${tx+S}" y2="${ty+S}" stroke="#374151" stroke-width="0.7" stroke-dasharray="6 3"/>`;
+        } else {
+            svg += `<line x1="${tx+S}" y1="${ty}" x2="${tx}" y2="${ty+S}" stroke="#374151" stroke-width="0.7" stroke-dasharray="6 3"/>`;
+        }
+    }
+
+    // Exclusion zone
+    if (md.exclusionZone) {
+        const ezH = S * 0.167; // ~8" on 48" table
+        const label = md.exclusionZone === 'attacker' ? 'EXCLUSION ZONE (ATTACKER)' : 'EXCLUSION ZONE';
+        svg += `<rect x="${tx}" y="${ty+S/2-ezH/2}" width="${S}" height="${ezH}" fill="rgba(239,68,68,0.04)" stroke="rgba(239,68,68,0.2)" stroke-width="1" stroke-dasharray="3 2" rx="2"/>`;
+        svg += `<text x="${tx+S/2}" y="${ty+S/2-ezH/2+11}" fill="rgba(239,68,68,0.35)" font-size="7.5" font-weight="600" text-anchor="middle">${label}</text>`;
+        // EZ measurement
+        svg += dimLabel(tx - 4, ty + S/2 - ezH/2, tx - 4, ty + S/2 + ezH/2, '4"+4"', 'left');
+    }
+
+    // Room (Server Room, Launching Tower)
+    (md.objectives || []).filter(o => o.type === 'room').forEach(o => {
+        const cx = tx + S * o.x, cy = ty + S * o.y;
+        const rw = S * 0.167, rh = S * 0.167; // 8" on 48"
+        svg += `<rect x="${cx-rw/2}" y="${cy-rh/2}" width="${rw}" height="${rh}" fill="rgba(34,211,238,0.05)" stroke="#22d3ee" stroke-width="1.5" rx="3"/>`;
+        const gw = rw * 0.25;
+        svg += `<rect x="${cx-gw/2}" y="${cy-rh/2-2}" width="${gw}" height="4" fill="#22d3ee" rx="1"/>`;
+        svg += `<rect x="${cx-gw/2}" y="${cy+rh/2-2}" width="${gw}" height="4" fill="#22d3ee" rx="1"/>`;
+        svg += `<rect x="${cx-rw/2-2}" y="${cy-gw/2}" width="4" height="${gw}" fill="#22d3ee" rx="1"/>`;
+        svg += `<rect x="${cx+rw/2-2}" y="${cy-gw/2}" width="4" height="${gw}" fill="#22d3ee" rx="1"/>`;
+        if (o.labelPos === 'top') {
+            svg += `<text x="${cx}" y="${cy-rh/2-6}" fill="#9ca3af" font-size="8" text-anchor="middle" font-weight="600">${o.label}</text>`;
+        } else {
+            svg += `<text x="${cx}" y="${cy+rh/2+13}" fill="#9ca3af" font-size="8" text-anchor="middle" font-weight="600">${o.label}</text>`;
+        }
+    });
+
+    // Objective markers
+    const colors = {
+        antenna: '#22d3ee', console: '#34d399', beacon: '#f59e0b',
+        objective: '#c084fc', techcoffin: '#fb923c', panoply: '#a78bfa',
+        civilian: '#f472b6'
+    };
+    const shapes = {
+        antenna: (cx,cy) => `<polygon points="${cx},${cy-9} ${cx+8},${cy+5} ${cx-8},${cy+5}" fill="${colors.antenna}" opacity="0.9"/>`,
+        console: (cx,cy) => `<rect x="${cx-7}" y="${cy-7}" width="14" height="14" fill="${colors.console}" opacity="0.9" rx="2"/>`,
+        beacon: (cx,cy) => `<circle cx="${cx}" cy="${cy}" r="7" fill="${colors.beacon}" opacity="0.9"/>`,
+        objective: (cx,cy) => `<circle cx="${cx}" cy="${cy}" r="8" fill="${colors.objective}" opacity="0.9"/>`,
+        techcoffin: (cx,cy) => `<rect x="${cx-8}" y="${cy-6}" width="16" height="12" fill="${colors.techcoffin}" opacity="0.9" rx="2"/>`,
+        panoply: (cx,cy) => `<rect x="${cx-7}" y="${cy-7}" width="14" height="14" fill="${colors.panoply}" opacity="0.9" rx="7"/>`,
+        civilian: (cx,cy) => `<circle cx="${cx}" cy="${cy}" r="6" fill="${colors.civilian}" opacity="0.9"/>`
+    };
+
+    // Objective distance annotations
+    (md.objectives || []).filter(o => o.type !== 'room').forEach(o => {
+        const cx = tx + S * o.x, cy = ty + S * o.y;
+        if (shapes[o.type]) {
+            svg += shapes[o.type](cx, cy);
+            // Label positioning: default below, 'top' above
+            if (o.labelPos === 'top') {
+                svg += `<text x="${cx}" y="${cy-14}" fill="#9ca3af" font-size="8" text-anchor="middle" font-weight="500">${o.label}</text>`;
+                if (o.edgeDist) {
+                    svg += `<text x="${cx}" y="${cy-24}" fill="#6b7281" font-size="7" text-anchor="middle">${o.edgeDist}</text>`;
+                }
+            } else {
+                svg += `<text x="${cx}" y="${cy+18}" fill="#9ca3af" font-size="8" text-anchor="middle" font-weight="500">${o.label}</text>`;
+                if (o.edgeDist) {
+                    svg += `<text x="${cx}" y="${cy+27}" fill="#6b7281" font-size="7" text-anchor="middle">${o.edgeDist}</text>`;
+                }
+            }
+        }
+    });
+
+    // Legend
+    const legendTypes = [...new Set((md.objectives||[]).filter(o=>o.type!=='room').map(o=>o.type))];
+    if (legendTypes.length > 1) {
+        const lx = tx + 6, ly = ty + S - 6 - legendTypes.length * 14;
+        svg += `<rect x="${lx-3}" y="${ly-10}" width="110" height="${legendTypes.length*14+8}" fill="rgba(20,25,37,0.85)" rx="3" stroke="#2a3348" stroke-width="0.5"/>`;
+        legendTypes.forEach((t, i) => {
+            const y = ly + i * 14;
+            if (shapes[t]) svg += shapes[t](lx + 6, y);
+            const names = { antenna:'Antenna', console:'Console', beacon:'Beacon', objective:'Objective', techcoffin:'Tech-Coffin', panoply:'Panoply', civilian:'Civilian' };
+            svg += `<text x="${lx+18}" y="${y+4}" fill="#9ca3af" font-size="7.5">${names[t]||t}</text>`;
+        });
+    }
+
+    svg += '</svg>';
+    return svg;
+}
+
+
+// ═══════════════════════════════════════════
+// RENDER FUNCTIONS
+// ═══════════════════════════════════════════
+
+function renderDeployTable(dep) {
+    let h = `<table class="dep-table"><thead><tr><th>Pts</th><th>SWC</th><th>Table</th><th>DZ</th></tr></thead><tbody>`;
+    dep.forEach(r => {
+        h += `<tr><td>${r.pts}</td><td>${r.swc}</td><td>${r.table}</td><td>${r.zone}</td></tr>`;
+    });
+    return h + '</tbody></table>';
+}
+
+function renderSharedRuleRef(id) {
+    const sr = SHARED_RULES[id];
+    if (!sr) return '';
+    return `<span class="shared-rule-ref" onclick="toggleSharedRule(this)" data-sr="${id}"><span class="sr-chevron">▶</span> ${sr.title}</span><div class="shared-rule-inline" id="sr-${id}-${Math.random().toString(36).substr(2,5)}"><div class="sr-title">${sr.title}</div>${sr.html}</div>`;
+}
+
+function renderSkill(s) {
+    let h = `<div class="skill-block"><div class="skill-name">${s.name}</div><div class="skill-type">${s.type}</div>`;
+    if (s.requirements && s.requirements.length) {
+        h += `<div class="skill-label">Requirements</div><ul>${s.requirements.map(r => `<li>${r}</li>`).join('')}</ul>`;
+    }
+    if (s.effects && s.effects.length) {
+        h += `<div class="skill-label">Effects</div><ul>${s.effects.map(e => `<li>${e}</li>`).join('')}</ul>`;
+    }
+    return h + '</div>';
+}
+
+const TACTICAL_SUPPORT_CHART = [
+    { num: 1, effect: 'ReRoll a Scenario Skill. Single use. (After failing a Roll)' },
+    { num: 2, effect: 'Auto-success on a Scenario Skill Roll. Single use. (Before making a Roll)' },
+    { num: 3, effect: 'A Specialist Trooper gets ReRoll on Scenario Skills for the game.' },
+    { num: 4, effect: 'Wildcard — pick any result from this chart.' },
+    { num: 5, effect: 'A Specialist Trooper gains the Sensor Special Skill.' },
+    { num: 6, effect: 'A Trooper gains the Specialist Operative Special Skill.' },
+    { num: 7, effect: 'A Specialist Trooper gains a MediKit.' },
+    { num: 8, effect: 'A Specialist Trooper gains a GizmoKit.' },
+    { num: 9, effect: 'Cancel an Enemy Tactical Support option.' },
+    { num: 10, effect: 'A Specialist Trooper gains a Blitzen.' },
+    { num: 11, effect: 'A Specialist Trooper gains an Adhesive Launcher Rifle.' },
+    { num: 12, effect: 'Lieutenant gets WIP +1 for the Initiative Roll.' },
+];
+
+const SEASON17_INLINE = `
+<div class="shared-rule-inline open" style="display:block; margin-bottom:8px;">
+    <div class="sr-title">Long Service</div>
+    <p>Any Trooper classified as <strong>'Character'</strong> also has the classification <strong>Veteran Troop</strong>.</p>
+</div>
+<span class="shared-rule-ref" onclick="toggleSharedRule(this)"><span class="sr-chevron">▶</span> Treasure Hunters & Secure Treasure</span>
+<div class="shared-rule-inline">
+    <div class="sr-title">Treasure Hunters</div>
+    <p>Players can include a <strong>Sāchā</strong> in their Army List. Each player deploys one Treasure Token (25mm) at the beginning of their Deployment Phase, at least 4" outside any DZs, not on/inside scenery.</p>
+    <p><strong>Secure Treasure:</strong> At end of game, can replace one Classified Objective with Secure Treasure. Accomplished when a non-Null Trooper is inside the enemy Treasure's ZoC while your own Treasure's ZoC is free of enemy Troopers (not counting Null). Provides the same OP as a normal Classified. A Sāchā can Secure Treasure even if own Treasure is contested. Cannot replace a card already used as an INTELCOM Card.</p>
+    <p><strong>Open Treasure (Sāchā Only):</strong> Short Skill, no Roll. Roll on Treasure Chart. One use per Sāchā per Treasure Token. Re-roll duplicates. Token stays on table.</p>
+</div>
+<span class="shared-rule-ref" onclick="toggleSharedRule(this)"><span class="sr-chevron">▶</span> CivEvac Rules</span>
+<div class="shared-rule-inline">
+    <div class="sr-title">CivEvac</div>
+    <p><strong>Short Movement Skill — Optional, Scenario.</strong> Only Models (not Markers). Must reach Silhouette contact with Civilian. Civilian cannot be in contact with enemy or have CivEvac Token.</p>
+    <p><strong>Cannot CivEvac if:</strong> already CivEvacing 2 Civilians, has Impetuous/Frenzy, has Peripheral, Troop Type REM/VH, in Coordinated Order or Fireteam.</p>
+    <p><strong>WIP+3 Roll.</strong> Can retry. Civilian stays in Silhouette contact with carrier. Max 2 Civilians per Trooper. Civilian must always stay on table.</p>
+    <p><strong>Cancelled if:</strong> carrier enters Isolated/Null/Immobilized State, joins Fireteam, enters Marker State, gains Impetuous. Can be cancelled voluntarily (no Roll). Hostile Civilians: no +3 MOD.</p>
+</div>
+<span class="shared-rule-ref" onclick="toggleSharedRule(this)"><span class="sr-chevron">▶</span> Secure HVT</span>
+<div class="shared-rule-inline">
+    <div class="sr-title">Secure HVT</div>
+    <p>At end of game, can replace one Classified with Secure HVT. Accomplished when a non-Null Trooper is inside the enemy HVT's ZoC, while your own HVT's ZoC is free of enemy Troopers (not counting Null). Same OP as a normal Classified. Cannot replace a card used as INTELCOM Card.</p>
+    <p>A player can only replace one Classified Objective with <em>either</em> Secure Treasure or Secure HVT (not both).</p>
+</div>
+<span class="shared-rule-ref" onclick="toggleSharedRule(this)"><span class="sr-chevron">▶</span> Casevac</span>
+<div class="shared-rule-inline">
+    <div class="sr-title">Casevac</div>
+    <p><strong>Short Movement Skill — Optional.</strong> Carry allied Troopers in Stunned, Immobilized, or Unconscious State. Carrier PH must be ≥ target PH (Baggage ignores).</p>
+    <p>Both move as one with carrier's MOV. Carried Trooper can't act, doesn't block LoF. Cancelled if carrier declares non-movement Skills, is activated in Impetuous Phase, or enters Null/Marker State. Also cancelled if carried Trooper recovers.</p>
+</div>
+`;
+
+function renderTacticalSupport(count) {
+    if (count <= 0) return '';
+    let h = `<div class="mission-section"><div class="mission-section-head" onclick="toggleSection(this)"><h3>Tactical Support (${count} card${count>1?'s':''})</h3><span class="chevron">▼</span></div><div class="mission-section-body">`;
+    h += `<p class="text-note">Draw ${count} card${count>1?'s':''} from the Tactical Objectives Deck (remove cards without symbols first). Open Information. Roll d12 if using dice instead of cards.</p>`;
+    h += '<div class="ts-grid">';
+    TACTICAL_SUPPORT_CHART.forEach(ts => {
+        h += `<span class="ts-num">${ts.num}</span><span class="ts-effect">${ts.effect}</span>`;
+    });
+    h += '</div>';
+    h += `<p class="ts-note">Applied at end of Deployment Phase in Initiative order. Recipient must be a Model on the table (not Hidden Deployment, not Marker). Irregular Troops and REM/VH not eligible.</p>`;
+    h += '</div></div>';
+    return h;
+}
+
+function renderMissionDetail(mission) {
+    const m = mission;
+    let h = `<button class="back-btn" onclick="navigate('missions')">← All Missions</button>`;
+
+    // Header
+    h += `<div class="mission-header">`;
+    h += `<div class="header-row">`;
+    h += `<h2>${m.name}</h2>`;
+    h += `</div>`;
+    h += `<div class="mission-meta">`;
+    if (m.category === 'da') {
+        h += '<span class="tag tag-da">Direct Action</span>';
+    } else {
+        h += `<span class="tag tag-class">Classified: ${m.classifiedCount}</span>`;
+        h += `<span class="tag tag-hvt">HVT: ${m.hvts}</span>`;
+    }
+    h += `<span class="tag tag-ts">TS: ${m.tacticalSupport}</span>`;
+    h += m.reinforcements ? '<span class="tag tag-reinf-yes">Reinforcements: Yes</span>' : '<span class="tag tag-reinf-no">Reinforcements: No</span>';
+    h += m.retreat ? '<span class="tag tag-retreat-yes">Retreat: Yes</span>' : '<span class="tag tag-retreat-no">Retreat: No</span>';
+    h += `</div>`;
+    if (m.flavor) h += `<div class="flavor">${m.flavor}</div>`;
+    h += `</div>`;
+
+    // Tactical Support (if mission has any)
+    h += renderTacticalSupport(m.tacticalSupport);
+
+    // Objectives (open by default)
+    h += `<div class="mission-section open"><div class="mission-section-head" onclick="toggleSection(this)"><h3>Mission Objectives</h3><span class="chevron">▼</span></div><div class="mission-section-body">`;
+    h += `<ul class="obj-list">`;
+    m.objectives.forEach(o => {
+        h += `<li><span>${o.text}</span><span class="obj-pts">${o.pts}</span></li>`;
+    });
+    h += `</ul>`;
+    if (m.classified) h += `<div class="callout"><div class="callout-label">Classified</div>${m.classified}</div>`;
+    h += `</div></div>`;
+
+    // Deployment (open by default)
+    h += `<div class="mission-section open"><div class="mission-section-head" onclick="toggleSection(this)"><h3>Deployment</h3><span class="chevron">▼</span></div><div class="mission-section-body">`;
+    h += renderDeployTable(m.deployment);
+    if (m.deployNotes) h += `<div class="callout"><div class="callout-label">Restrictions</div>${m.deployNotes}</div>`;
+    h += `<div class="map-container">${generateMap(m)}</div>`;
+    h += `</div></div>`;
+
+    // Scenario Special Rules (open by default)
+    h += `<div class="mission-section open"><div class="mission-section-head" onclick="toggleSection(this)"><h3>Scenario Special Rules</h3><span class="chevron">▼</span></div><div class="mission-section-body">`;
+    if (m.specialRules) h += m.specialRules;
+    if (m.skills && m.skills.length) {
+        m.skills.forEach(s => { h += renderSkill(s); });
+    }
+    if (m.extraRulesHtml) h += m.extraRulesHtml;
+    if (m.extraNotes) m.extraNotes.forEach(n => { h += `<p class="text-note">${n}</p>`; });
+    if (m.endNotes) m.endNotes.forEach(n => { h += `<p class="text-note">${n}</p>`; });
+    h += `</div></div>`;
+
+    // Shared Rules (collapsed by default)
+    if (m.sharedRules && m.sharedRules.length) {
+        h += `<div class="mission-section"><div class="mission-section-head" onclick="toggleSection(this)"><h3>Reference Rules</h3><span class="chevron">▼</span></div><div class="mission-section-body">`;
+        m.sharedRules.forEach(id => { h += renderSharedRuleRef(id); });
+        h += `</div></div>`;
+    }
+
+    // Season 17 Rules (collapsed by default - always present)
+    h += `<div class="mission-section"><div class="mission-section-head" onclick="toggleSection(this)"><h3>Season 17 Rules</h3><span class="chevron">▼</span></div><div class="mission-section-body">`;
+    h += SEASON17_INLINE;
+    h += `</div></div>`;
+
+    return h;
+}
+
+function renderMissionGrid() {
+    let h = '';
+    // ITS Scenarios
+    const its = MISSIONS.filter(m => m.category === 'its').sort((a,b) => a.name.localeCompare(b.name));
+    const da = MISSIONS.filter(m => m.category === 'da').sort((a,b) => a.name.localeCompare(b.name));
+
+    h += `<div class="mission-grid">`;
+    h += `<div class="section-divider"><span>ITS Scenarios</span><button class="rand-btn" onclick="event.stopPropagation(); randomMission('its')">RAND</button></div>`;
+    its.forEach(m => {
+        h += `<div class="mission-tile" onclick="navigate('mission/${m.id}')">`;
+        h += `<div class="tile-name">${m.name}</div>`;
+        h += `<div class="tile-tags">`;
+        h += `<span class="tag tag-class">Class ${m.classifiedCount}</span>`;
+        h += `<span class="tag tag-hvt">HVT ${m.hvts}</span>`;
+        h += `<span class="tag tag-ts">TS ${m.tacticalSupport}</span>`;
+        h += m.reinforcements ? '<span class="tag tag-reinf-yes">Reinf ✓</span>' : '<span class="tag tag-reinf-no">Reinf ✗</span>';
+        h += `</div></div>`;
+    });
+
+    h += `<div class="section-divider">Direct Action <span class="divider-note">No HVT — No Classified</span></div>`;
+    da.forEach(m => {
+        h += `<div class="mission-tile" onclick="navigate('mission/${m.id}')">`;
+        h += `<div class="tile-name">${m.name}</div>`;
+        h += `<div class="tile-tags">`;
+        h += m.reinforcements ? '<span class="tag tag-reinf-yes">Reinf ✓</span>' : '<span class="tag tag-reinf-no">Reinf ✗</span>';
+        h += `</div></div>`;
+    });
+    h += `</div>`;
+    return h;
+}
+
+function renderSeasonRules() {
+    let h = '';
+
+    h += `<div class="rules-section open"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Treasure Hunters</h2><span class="chevron">▼</span></div><div class="rules-section-body">
+        <p>Players can include a <strong>Sāchā</strong> in their Army List.</p>
+        <h3>Treasure Token Placement</h3>
+        <ul>
+            <li>Each player deploys one Treasure Token (25mm) at the beginning of their Deployment Phase.</li>
+            <li>Must be placed at least 4" outside any Deployment Zones, not on/inside scenery, in an accessible location.</li>
+        </ul>
+        <h3>Secure Treasure</h3>
+        <p>At end of game, can replace one Classified Objective with Secure Treasure. Accomplished when a non-Null Trooper is inside the enemy Treasure's ZoC while your own Treasure's ZoC is free of enemy Troopers (not counting Null). Provides the same OP as a normal Classified. A Sāchā can Secure Treasure even if the player's own Treasure is not free of enemies.</p>
+        <h3>Open Treasure (Sāchā Only)</h3>
+        <p><strong>Short Skill — Attack, Scenario.</strong> No Roll needed. Roll on the Treasure Chart for one weapon/equipment. One use per Sāchā per Treasure Token. Re-roll duplicates. Treasure Token stays on the table after opening.</p>
+        <h3>Treasure Chart</h3>
+        <div class="panoply-grid">
+            <span class="pg-num">1-2</span><span>+1 ARM</span><span class="pg-num">13</span><span>Panzerfaust</span>
+            <span class="pg-num">3-4</span><span>Light Flamethrower</span><span class="pg-num">14</span><span>Monofilament CCW</span>
+            <span class="pg-num">5-6</span><span>Grenades</span><span class="pg-num">15</span><span>MOV 8-4</span>
+            <span class="pg-num">7-8</span><span>DA CCW</span><span class="pg-num">16</span><span>MULTI Rifle</span>
+            <span class="pg-num">9</span><span>Multispectral Visor L1</span><span class="pg-num">17</span><span>MULTI Sniper Rifle</span>
+            <span class="pg-num">10</span><span>EXP CCW</span><span class="pg-num">18</span><span>+4 ARM</span>
+            <span class="pg-num">11</span><span>Adhesive Launcher Rifle</span><span class="pg-num">19</span><span>Mimetism (-6)</span>
+            <span class="pg-num">12</span><span>+2 ARM</span><span class="pg-num">20</span><span>HMG</span>
+        </div>
+    </div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Long Service</h2><span class="chevron">▼</span></div><div class="rules-section-body">
+        <p>During this season, any Trooper whose Trooper Classification is listed as <strong>'Character'</strong> also has the Trooper Classification of <strong>Veteran Troop</strong>.</p>
+    </div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Civilians in Infinity</h2><span class="chevron">▼</span></div><div class="rules-section-body">
+        <p>Sometimes missions include civilians. Troopers interact with non-combatant personnel via CivEvac. Rules of engagement prevent causing harm to civilians.</p>
+        <h3>Civilian Effects</h3>
+        <ul>
+            <li>A Civilian does not belong to any Army List, Combat Group, or Order Pool.</li>
+            <li>Civilians are Neutral unless otherwise specified.</li>
+            <li>Civilians do not block LoF or provide CC MODs.</li>
+            <li>Civilians ignore Effects and Damage — they lack ARM, BTS, and Wounds.</li>
+            <li>Civilians cannot activate Deployable weapons/equipment and do not generate AROs.</li>
+            <li>Templates affecting a Civilian are not cancelled but have no effect on it.</li>
+            <li>Being in Silhouette contact with a Civilian does not activate Engaged State.</li>
+        </ul>
+        <table class="profile-table"><thead><tr><th>MOV</th><th>CC</th><th>BS</th><th>PH</th><th>WIP</th><th>ARM</th><th>BTS</th><th>VITA</th><th>S</th></tr></thead>
+        <tbody><tr><td>—</td><td>6</td><td>5</td><td>10</td><td>11</td><td>—</td><td>—</td><td>—</td><td>2</td></tr></tbody></table>
+    </div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>CivEvac</h2><span class="chevron">▼</span></div><div class="rules-section-body">
+        <p><strong>Short Movement Skill — Optional, Scenario.</strong></p>
+        <h3>Requirements</h3>
+        <ul>
+            <li>Only Models (not Markers) can CivEvac. Any Marker declaring CivEvac is revealed.</li>
+            <li>Must be in or reach Silhouette contact with the targeted Civilian.</li>
+            <li>Target Civilian cannot be in contact with an enemy Model or have a CivEvac Token.</li>
+            <li>Cannot CivEvac if: already CivEvacing two Civilians, has Impetuous/Frenzy, has Peripheral, Troop Type is REM or VH, in a Coordinated Order or Fireteam.</li>
+        </ul>
+        <h3>Effects</h3>
+        <ul>
+            <li>WIP+3 Roll to CivEvac. Can retry on failure.</li>
+            <li>CivEvaced Civilian stays in Silhouette contact with the Trooper at end of movement.</li>
+            <li>Max 2 Civilians CivEvaced per Trooper (unless scenario says otherwise).</li>
+            <li>Civilian must always stay on the table even if carrier enters Null State.</li>
+            <li>CivEvac cancelled if: carrier enters Isolated/Null/Immobilized State, joins a Fireteam, enters Marker State (Camo, etc.), gains Impetuous via Frenzy, or cancelled voluntarily (no Roll).</li>
+            <li>Hostile Civilians: WIP Roll does not get +3 MOD.</li>
+        </ul>
+    </div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Casevac</h2><span class="chevron">▼</span></div><div class="rules-section-body">
+        <p><strong>Short Movement Skill — Optional.</strong> Allows carrying allied Troopers in Stunned, Immobilized, or Unconscious State.</p>
+        <h3>Requirements</h3>
+        <ul>
+            <li>Only Models (not Markers). Markers declaring Casevac are revealed.</li>
+            <li>Must be in Silhouette contact with an allied Trooper in Stunned, Immobilized, or Unconscious State.</li>
+            <li>Carrier's PH must be ≥ target's PH (Baggage ignores this).</li>
+        </ul>
+        <h3>Casevac State Effects</h3>
+        <ul>
+            <li>Both Troopers activated with one Order/ARO, moving together using carrier's MOV.</li>
+            <li>Carried Trooper cannot declare Orders or AROs.</li>
+            <li>Both provoke only one ARO from each enemy. Template Weapons follow Into Close Combat rule.</li>
+            <li>Carried Trooper doesn't block LoF or provide +1 B in CC.</li>
+        </ul>
+        <h3>Cancellation</h3>
+        <ul>
+            <li>Cancelled if carrier declares a Skill other than Cautious Movement, Climb, Dodge, Jump, Reset, or Short Movement Skill.</li>
+            <li>Cancelled if carrier activated in Impetuous Phase, enters Immobilized/Null State, or enters Marker State.</li>
+            <li>Cancelled if carried Trooper recovers from their State. Can be cancelled voluntarily (Short Skill, no Roll).</li>
+        </ul>
+    </div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Designated Target</h2><span class="chevron">▼</span></div><div class="rules-section-body">
+        <p>In some scenarios, enemy HVTs are considered enemy Troopers instead of Neutral Civilians. They are reactive and hostile.</p>
+        <table class="profile-table"><thead><tr><th>MOV</th><th>CC</th><th>BS</th><th>PH</th><th>WIP</th><th>ARM</th><th>BTS</th><th>VITA</th><th>S</th></tr></thead>
+        <tbody><tr><td>4-4</td><td>6</td><td>8</td><td>11</td><td>11</td><td>1</td><td>0</td><td>1</td><td>2</td></tr></tbody></table>
+        <p>Weapons: Stun Pistol, PARA CC Weapon</p>
+    </div></div>`;
+
+    return h;
+}
+
+function renderTournamentRules() {
+    let h = '';
+
+    h += `<div class="rules-section open"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Keeping Score</h2><span class="chevron">▼</span></div><div class="rules-section-body">
+        <table class="rules-table"><thead><tr><th>Outcome</th><th>Tournament Points</th></tr></thead><tbody>
+        <tr><td>Victory (more OP than opponent)</td><td>4</td></tr>
+        <tr><td>Tie (same OP)</td><td>2</td></tr>
+        <tr><td>Defeat (fewer OP)</td><td>0</td></tr>
+        <tr><td>Offensive Bonus (5+ OP)</td><td>+1</td></tr>
+        <tr><td>Defensive Bonus (losing by ≤2 OP)</td><td>+1</td></tr>
+        </tbody></table>
+        <h3>Tiebreakers (in order)</h3>
+        <p>1. Total Tournament Points → 2. Total Objective Points → 3. Total Victory Points (Surviving Army Points) → 4. Total Objective Points achieved by opponents.</p>
+    </div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Tournament Tiers</h2><span class="chevron">▼</span></div><div class="rules-section-body">
+        <table class="rules-table"><thead><tr><th>Tier</th><th>Army Points</th><th>SWC</th></tr></thead><tbody>
+        <tr><td>400/350</td><td>400 or 350</td><td>8 or 7</td></tr>
+        <tr><td>300/250</td><td>300 or 250</td><td>6 or 5</td></tr>
+        <tr><td>200/150</td><td>200 or 150</td><td>4 or 3</td></tr>
+        </tbody></table>
+    </div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Tournament Rounds</h2><span class="chevron">▼</span></div><div class="rules-section-body">
+        <table class="rules-table"><thead><tr><th>Players</th><th>Rounds</th></tr></thead><tbody>
+        <tr><td>4–8</td><td>3</td></tr>
+        <tr><td>9–16</td><td>4</td></tr>
+        <tr><td>17+</td><td>5</td></tr>
+        </tbody></table>
+        <p class="text-note">Treat as a guideline — Organizer decides, but never fewer than 3.</p>
+    </div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Army Lists</h2><span class="chevron">▼</span></div><div class="rules-section-body">
+        <ul>
+            <li>Each player submits one or two Army Lists to CorvuSphere, both from a single Generic or Sectorial Army.</li>
+            <li>Two printed copies of each Complete Army List (Open + Private info) — one for the Organizer before Round 1.</li>
+            <li>Carry a printed Courtesy Army List (Open Information only) — shown to adversary after Deployment Phase.</li>
+            <li>Players choose which list to use at the beginning of each Round, after learning opponent, Classifieds, faction, and table.</li>
+        </ul>
+    </div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Pairings & Byes</h2><span class="chevron">▼</span></div><div class="rules-section-body">
+        <h3>Pairings</h3>
+        <p>Round 1: random. From Round 2: Swiss system ranked by TP → OP → VP → opponent OP. First vs second, third vs fourth, etc.</p>
+        <h3>Byes (Odd Number of Players)</h3>
+        <p>Bye = Victory (4 TP), 0 OP, 0 VP. Round 1: random. Later rounds: lowest-ranked player who hasn't had a bye.</p>
+        <p>After the last Round, players who had a bye recalculate: (Total OP × Rounds) ÷ Rounds Played, rounded up. Same for VP if still tied.</p>
+    </div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Classified Objectives</h2><span class="chevron">▼</span></div><div class="rules-section-body">
+        <p>Usually 1 OP each (varies by scenario). Each Classified provides its OP once per game.</p>
+        <h3>Selection</h3>
+        <p>Draw Classifieds after learning the mission and opponent's faction, before choosing an Army List. Shuffle your Classified Deck in front of opponent, draw two cards per Classified slot, discard one before drawing the next pair.</p>
+        <h3>INTELCOM Card</h3>
+        <p>Where specified: before the game (after choosing Classifieds), each player decides if a card is a Classified Objective or INTELCOM Card. Highest die roll announces first. Content is Private Information.</p>
+        <h3>HVT Model</h3>
+        <ul>
+            <li>Deploy one HVT at the start of Deployment Phase, at least 4" outside any DZ, not on/inside scenery.</li>
+            <li>HVTs are Neutral Civilians to both players.</li>
+        </ul>
+        <h3>Secure HVT</h3>
+        <p>At end of game, can replace one Classified with Secure HVT. Accomplished when a non-Null Trooper is inside the enemy HVT's ZoC, while your own HVT's ZoC is free of enemy Troopers (not counting Null). Same OP as a normal Classified.</p>
+    </div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Tactical Support</h2><span class="chevron">▼</span></div><div class="rules-section-body">
+        <p>Each scenario specifies how many Tactical Support options. Drawn from the Tactical Objectives Deck after choosing your Army List. Remove all cards without a symbol first. Shuffle and draw in front of opponent. Open Information.</p>
+        <p>Recipient must be a Model on the table (not Hidden Deployment, not Marker State). Irregular Troops and REM/VH are not eligible.</p>
+        <h3>Effects Summary</h3>
+        <ul>
+            <li><strong>ReRoll:</strong> Apply (ReRoll) MOD to a Scenario Skill. Single use. After failing a Roll.</li>
+            <li><strong>Auto-success:</strong> Automatic success on a Scenario Skill Roll. Single use. Before making a Roll.</li>
+            <li><strong>Specialist ReRoll:</strong> Specialist Trooper gets (ReRoll) MOD on Scenario Skills for the game.</li>
+            <li><strong>Wildcard:</strong> Pick any result from the chart.</li>
+            <li><strong>Sensor:</strong> A Specialist Trooper gains Sensor Special Skill.</li>
+            <li><strong>Specialist Operative:</strong> A Trooper gains Specialist Operative Special Skill.</li>
+            <li><strong>MediKit:</strong> A Specialist Trooper gains a MediKit.</li>
+            <li><strong>GizmoKit:</strong> A Specialist Trooper gains a GizmoKit.</li>
+            <li><strong>Cancel:</strong> Cancel an Enemy Tactical Support option.</li>
+            <li><strong>Blitzen:</strong> A Specialist Trooper gains a Blitzen.</li>
+            <li><strong>Adhesive Launcher Rifle:</strong> A Specialist Trooper gains an Adhesive Launcher Rifle.</li>
+            <li><strong>WIP+1 Lieutenant:</strong> Lieutenant gets WIP +1 for the Initiative Roll.</li>
+        </ul>
+    </div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Extras</h2><span class="chevron">▼</span></div><div class="rules-section-body">
+        <p>Organizer may choose one or more. Must be announced when the event is first announced.</p>
+        <ul>
+            <li><strong>Escalation:</strong> 3 Rounds only. Round 1: 200/150-Tier, Round 2: 300/250-Tier, Round 3: 400/350-Tier. Three Army Lists needed.</li>
+            <li><strong>Free Game:</strong> Removes the 15-Trooper limit.</li>
+            <li><strong>Spec-Ops:</strong> Field a Spec-Ops with 12 Experience Points. Has Specialist Operative. No further XP earned during tournament.</li>
+            <li><strong>Soldiers of Fortune:</strong> Include up to 85pts of Mercenary Troops (costs 1 SWC). Respect Availability on Unit Profile, ignore Army/Sectorial limits. No duplicate Characters.</li>
+            <li><strong>Direct Action:</strong> 4 scenarios without Classified Deck or HVTs.</li>
+            <li><strong>Reinforcements:</strong> Reinforcement Rules used. All players must use Reinforcements.</li>
+            <li><strong>Resilience Operations:</strong> Uses Tactical Objectives Deck + Battle Conditions Deck instead of ITS scenarios/Classified Deck.</li>
+        </ul>
+    </div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Token Diameters</h2><span class="chevron">▼</span></div><div class="rules-section-body">
+        <table class="rules-table"><thead><tr><th>Token</th><th>Diameter</th></tr></thead><tbody>
+        <tr><td>Trans. Antenna / Tech-Coffin / Console / Objective</td><td>40mm</td></tr>
+        <tr><td>Supply Box / Beacon / Player A/B / Data Pack / Defensive Turret / CivEvac</td><td>25mm</td></tr>
+        </tbody></table>
+    </div></div>`;
+
+    return h;
+}
+
+function renderReference() {
+    let h = '<p class="text-note" style="margin-bottom:12px">Shared rules that appear across multiple missions. These are also available inline within each mission card.</p>';
+    Object.keys(SHARED_RULES).forEach(id => {
+        const sr = SHARED_RULES[id];
+        h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>${sr.title}</h2><span class="chevron">▼</span></div><div class="rules-section-body">${sr.html}</div></div>`;
+    });
+    return h;
+}
+
+
+// ═══════════════════════════════════════════
+// NAVIGATION & STATE
+// ═══════════════════════════════════════════
+
+const content = document.getElementById('content');
+const navBtns = document.querySelectorAll('.nav-btn');
+
+function randomMission(category) {
+    const pool = MISSIONS.filter(m => m.category === category);
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    navigate('mission/' + pick.id);
+}
+
+function navigate(route) {
+    window.location.hash = route;
+}
+
+function renderRoute() {
+    const hash = (window.location.hash || '#missions').slice(1);
+    const parts = hash.split('/');
+
+    // Update nav buttons
+    navBtns.forEach(b => {
+        b.classList.toggle('active', b.dataset.view === parts[0] || (parts[0] === 'mission' && b.dataset.view === 'missions'));
+    });
+
+    if (parts[0] === 'missions' || parts[0] === '') {
+        content.innerHTML = renderMissionGrid();
+    } else if (parts[0] === 'mission' && parts[1]) {
+        const m = MISSIONS.find(m => m.id === parts[1]);
+        if (m) {
+            content.innerHTML = renderMissionDetail(m);
+            window.scrollTo({ top: 0 });
+        } else {
+            content.innerHTML = '<p>Mission not found.</p>';
+        }
+    } else if (parts[0] === 'season') {
+        content.innerHTML = renderSeasonRules();
+    } else if (parts[0] === 'tournament') {
+        content.innerHTML = renderTournamentRules();
+    } else if (parts[0] === 'reference') {
+        content.innerHTML = renderReference();
+    } else {
+        content.innerHTML = renderMissionGrid();
+    }
+}
+
+// Nav button clicks
+navBtns.forEach(b => {
+    b.addEventListener('click', () => navigate(b.dataset.view));
+});
+
+// Hash change
+window.addEventListener('hashchange', renderRoute);
+
+// Initial render
+renderRoute();
+
+// Section toggle
+function toggleSection(el) {
+    el.parentElement.classList.toggle('open');
+}
+window.toggleSection = toggleSection;
+
+// Shared rule inline toggle
+function toggleSharedRule(el) {
+    el.classList.toggle('open');
+    const next = el.nextElementSibling;
+    if (next) next.classList.toggle('open');
+}
+window.toggleSharedRule = toggleSharedRule;
+
+// ═══════════════════════════════════════════
+// Dice Roller Widget
+// ═══════════════════════════════════════════
+const BOOTY_CHART = [
+    { min:1, max:2, result:'+1 ARM' },
+    { min:3, max:4, result:'Light Flamethrower' },
+    { min:5, max:6, result:'Grenades' },
+    { min:7, max:8, result:'DA CC Weapon' },
+    { min:9, max:9, result:'Multispectral Visor L1' },
+    { min:10, max:10, result:'EXP CC Weapon' },
+    { min:11, max:11, result:'Adhesive Launcher Rifle' },
+    { min:12, max:12, result:'TAG: Immunity (AP) / Other: +2 ARM' },
+    { min:13, max:13, result:'Panzerfaust' },
+    { min:14, max:14, result:'Monofilament CC Weapon' },
+    { min:15, max:15, result:'MOV 8-4' },
+    { min:16, max:16, result:'TAG: BS Attack (Shock) / Other: MULTI Rifle' },
+    { min:17, max:17, result:'MULTI Sniper Rifle' },
+    { min:18, max:18, result:'TAG: Immunity (ARM) / Other: +4 ARM' },
+    { min:19, max:19, result:'Mimetism (-6)' },
+    { min:20, max:20, result:'TAG: BS Attack (+1B) / Other: HMG' },
+];
+const META_CHART = [
+    { min:1, max:3, result:'+3 PH' },
+    { min:4, max:5, result:'Super-Jump' },
+    { min:6, max:7, result:'Regeneration' },
+    { min:8, max:10, result:'Climbing Plus' },
+    { min:11, max:12, result:'MOV: 8-4' },
+    { min:13, max:14, result:'+6 BTS' },
+    { min:15, max:15, result:'No Wound Incapacitation' },
+    { min:16, max:16, result:'+1 ARM + Immunity (ARM)' },
+    { min:17, max:17, result:'Dogged + Immunity (Enhanced)' },
+    { min:18, max:18, result:'MOV: 6-4 + Super-Jump' },
+    { min:19, max:19, result:'MOV: 8-4 + Climbing Plus' },
+    { min:20, max:20, result:'+3 PH + Regeneration' },
+];
+const SPEEDBALL_CHART = [
+    { min:1, max:3, result:'VitaPack — Cancel Unconscious (Vitality trooper): remove 1 Wound. Short Skill in Silhouette contact.' },
+    { min:4, max:6, result:'AutoRepairS — Cancel Unconscious (STR trooper): remove 1–2 Wounds. Short Skill in Silhouette contact.' },
+    { min:7, max:10, result:'Switch On — Cancel Immobilized A/B, Isolated, or Stunned on allied trooper. Short Skill in Silhouette contact.' },
+    { min:11, max:13, result:'Jetpack — Super-Jump (Jet Propulsion) for 1 Order. S2 troopers only.' },
+    { min:14, max:16, result:'Overkill — Mode 1: Cancel Unloaded, regain Disposable uses (Conclusion Step). Mode 2: BS Attack (SR-1) for 1 Order.' },
+    { min:17, max:20, result:'NanoShield — +2 MOD to all Saving Rolls for 1 Order (Resolution Step).' },
+];
+
+function lookupChart(chart, roll) {
+    return chart.find(e => roll >= e.min && roll <= e.max).result;
+}
+
+const DICE_TABLES = {
+    ts:   { name: 'Tactical Support', die: 12, roll: v => TACTICAL_SUPPORT_CHART[v-1].effect },
+    booty:{ name: 'Booty', die: 20, roll: v => lookupChart(BOOTY_CHART, v) },
+    meta: { name: 'MetaChemistry', die: 20, roll: v => lookupChart(META_CHART, v) },
+    speedball: { name: 'Speedball', die: 20, roll: v => lookupChart(SPEEDBALL_CHART, v) },
+};
+
+function toggleDicePanel() {
+    document.getElementById('dicePanel').classList.toggle('open');
+}
+window.toggleDicePanel = toggleDicePanel;
+
+function diceRoll(type) {
+    const t = DICE_TABLES[type];
+    const value = Math.floor(Math.random() * t.die) + 1;
+    const result = t.roll(value);
+    const log = document.getElementById('diceLog');
+    const entry = document.createElement('div');
+    entry.className = 'dice-entry';
+    entry.innerHTML = `<div class="dice-entry-text"><span class="dice-entry-type">${t.name}</span> d${t.die}: <span class="dice-entry-roll">${value}</span> → <span class="dice-entry-result">${result}</span></div><button class="dice-entry-del" onclick="this.parentElement.remove()" title="Remove">✕</button>`;
+    log.insertBefore(entry, log.firstChild);
+}
+window.diceRoll = diceRoll;
+
+function diceClearLog() {
+    document.getElementById('diceLog').innerHTML = '';
+}
+window.diceClearLog = diceClearLog;
+
+// Escape key closes dice panel
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        const panel = document.getElementById('dicePanel');
+        if (panel.classList.contains('open')) panel.classList.remove('open');
+    }
+});
+
+// Back to top
+window.addEventListener('scroll', () => {
+    document.getElementById('toTopBtn').style.display = window.scrollY > 200 ? 'block' : 'none';
+});
+</script>
+
+<script data-goatcounter="https://gcits17.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

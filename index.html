@@ -170,6 +170,42 @@ body {
     box-shadow: 0 0 8px var(--cyan-glow);
 }
 
+/* Filter buttons */
+.filter-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+.filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+    border: 1px solid;
+}
+.filter-btn img { height: 16px; width: auto; }
+.filter-btn-adepticon {
+    background: rgba(180, 30, 30, 0.15);
+    border-color: #c0392b;
+    color: #e74c3c;
+}
+.filter-btn-adepticon:hover { background: rgba(180, 30, 30, 0.3); }
+.filter-btn-adepticon.active {
+    background: rgba(180, 30, 30, 0.35);
+    border-color: #e74c3c;
+    color: #ff6b6b;
+    box-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
+}
+
 /* ═══════════════════════════════════════════
    Mission Grid (Landing)
    ═══════════════════════════════════════════ */
@@ -2339,24 +2375,50 @@ function renderMissionDetail(mission) {
     return h;
 }
 
+const ADEPTICON_MISSIONS = ['provisioning', 'evacuation', 'crossing_lines', 'akial_interference', 'area_of_interest'];
+let missionFilter = null;
+
+function toggleMissionFilter(filter) {
+    missionFilter = missionFilter === filter ? null : filter;
+    renderRoute();
+}
+
+function renderMissionTile(m) {
+    let h = `<div class="mission-tile" onclick="navigate('mission/${m.id}')">`;
+    h += `<div class="tile-name">${m.name}</div>`;
+    h += `<div class="tile-stats">`;
+    h += `<span class="tile-stat"><img src="${ICON_CLASSIFIED}" class="tile-icon" alt="">Class ${m.classifiedCount}</span>`;
+    h += `<span class="tile-stat"><img src="${ICON_HVT}" class="tile-icon" alt="">HVT ${m.hvts}</span>`;
+    h += `<span class="tile-stat"><img src="${ICON_TACSUPPORT}" class="tile-icon" alt="">TS ${m.tacticalSupport}</span>`;
+    h += m.reinforcements ? '<span class="tile-stat reinf-yes">Reinf ✓</span>' : '<span class="tile-stat reinf-no">Reinf ✗</span>';
+    h += `</div></div>`;
+    return h;
+}
+
 function renderMissionGrid() {
     let h = '';
-    // ITS Scenarios
+
+    // Filter bar
+    h += `<div class="filter-bar">`;
+    h += `<button class="filter-btn filter-btn-adepticon${missionFilter === 'adepticon' ? ' active' : ''}" onclick="toggleMissionFilter('adepticon')"><img src="adepticon_logo.png" alt="Adepticon"> Adepticon</button>`;
+    h += `</div>`;
+
+    if (missionFilter === 'adepticon') {
+        const filtered = ADEPTICON_MISSIONS.map(id => MISSIONS.find(m => m.id === id)).filter(Boolean);
+        h += `<div class="mission-grid">`;
+        h += `<div class="section-divider"><span>Adepticon Missions</span></div>`;
+        filtered.forEach(m => { h += renderMissionTile(m); });
+        h += `</div>`;
+        return h;
+    }
+
+    // Default: ITS + DA grid
     const its = MISSIONS.filter(m => m.category === 'its').sort((a,b) => a.name.localeCompare(b.name));
     const da = MISSIONS.filter(m => m.category === 'da').sort((a,b) => a.name.localeCompare(b.name));
 
     h += `<div class="mission-grid">`;
     h += `<div class="section-divider"><span>ITS Scenarios</span><button class="rand-btn" onclick="event.stopPropagation(); randomMission('all')">${SHUFFLE_ICON}RAND</button></div>`;
-    its.forEach(m => {
-        h += `<div class="mission-tile" onclick="navigate('mission/${m.id}')">`;
-        h += `<div class="tile-name">${m.name}</div>`;
-        h += `<div class="tile-stats">`;
-        h += `<span class="tile-stat"><img src="${ICON_CLASSIFIED}" class="tile-icon" alt="">Class ${m.classifiedCount}</span>`;
-        h += `<span class="tile-stat"><img src="${ICON_HVT}" class="tile-icon" alt="">HVT ${m.hvts}</span>`;
-        h += `<span class="tile-stat"><img src="${ICON_TACSUPPORT}" class="tile-icon" alt="">TS ${m.tacticalSupport}</span>`;
-        h += m.reinforcements ? '<span class="tile-stat reinf-yes">Reinf ✓</span>' : '<span class="tile-stat reinf-no">Reinf ✗</span>';
-        h += `</div></div>`;
-    });
+    its.forEach(m => { h += renderMissionTile(m); });
 
     h += `<div class="section-divider">Direct Action <span class="divider-note">No HVT — No Classified</span></div>`;
     da.forEach(m => {

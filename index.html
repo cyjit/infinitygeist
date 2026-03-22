@@ -1999,7 +1999,10 @@ function renderTacticalSupport(count) {
 
 function renderMissionDetail(mission) {
     const m = mission;
-    let h = `<button class="back-btn" onclick="navigate('missions')">← All Missions</button>`;
+    let h = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <button class="back-btn" style="margin-bottom:0" onclick="navigate('missions')">← All Missions</button>
+        <button class="rand-btn" onclick="randomMission('all')">RAND</button>
+    </div>`;
 
     // Header
     h += `<div class="mission-header">`;
@@ -2074,7 +2077,7 @@ function renderMissionGrid() {
     const da = MISSIONS.filter(m => m.category === 'da').sort((a,b) => a.name.localeCompare(b.name));
 
     h += `<div class="mission-grid">`;
-    h += `<div class="section-divider"><span>ITS Scenarios</span><button class="rand-btn" onclick="event.stopPropagation(); randomMission('its')">RAND</button></div>`;
+    h += `<div class="section-divider"><span>ITS Scenarios</span><button class="rand-btn" onclick="event.stopPropagation(); randomMission('all')">RAND</button></div>`;
     its.forEach(m => {
         h += `<div class="mission-tile" onclick="navigate('mission/${m.id}')">`;
         h += `<div class="tile-name">${m.name}</div>`;
@@ -2323,8 +2326,11 @@ const content = document.getElementById('content');
 const navBtns = document.querySelectorAll('.nav-btn');
 
 function randomMission(category) {
-    const pool = MISSIONS.filter(m => m.category === category);
-    const pick = pool[Math.floor(Math.random() * pool.length)];
+    const pool = category === 'all' ? MISSIONS : MISSIONS.filter(m => m.category === category);
+    const currentId = window.location.hash.startsWith('#mission/')
+        ? window.location.hash.slice(9) : null;
+    const eligible = pool.length > 1 ? pool.filter(m => m.id !== currentId) : pool;
+    const pick = eligible[Math.floor(Math.random() * eligible.length)];
     navigate('mission/' + pick.id);
 }
 

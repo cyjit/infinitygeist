@@ -1087,7 +1087,7 @@ const MISSIONS = [
         deployment: DEPLOYMENT_STANDARD, deployType: 'standard',
         objectives: [
             { text: 'End of game: have the Enemy Prototype Captured', pts: '2 OP' },
-            { text: 'End of game: Enemy Prototype Captured in your Deployment Zone', pts: '+1 OP' },
+            { text: 'End of game: Enemy Prototype Captured in your Deployment Zone', pts: '1 OP' },
             { text: 'End of game: your Prototype is not Captured by the enemy (only if not Destroyed)', pts: '1 OP' },
             { text: 'End of game: your Prototype is Destroyed', pts: '3 OP' },
             { text: 'End of game: acquired more weapons/items from Panoplies than adversary', pts: '1 OP' },
@@ -1186,6 +1186,12 @@ const MISSIONS = [
             { text: '[DEFENDER] Kill Army Points threshold (varies by game size)', pts: '2 OP' },
         ],
         classified: 'Each player has 1 Classified Objective (1 OP).',
+        thresholdHtml: `
+            <h4>Kill Army Points Threshold</h4>
+            <table class="rules-table threshold-table"><thead><tr><th>OP</th><th>150</th><th>200</th><th>250</th><th>300</th><th>350</th><th>400</th></tr></thead><tbody>
+            <tr><td class="op-val">A: 1 / D: 2</td><td>40–75</td><td>50–100</td><td>65–125</td><td>75–150</td><td>85–175</td><td>100–200</td></tr>
+            </tbody></table>
+        `,
         deployNotes: 'Cannot deploy inside Server Room. Attacker: Exclusion Zone 4" either side of central line (no AD/Superior Deployment).',
         sharedRules: ['specialist_troops', 'dominate_zo', 'shasvastii', 'baggage', 'killing', 'intelcom_card', 'end_of_mission'],
         specialRules: `
@@ -1237,7 +1243,7 @@ const MISSIONS = [
             { text: 'End of game: have an Activated Antenna', pts: '1 OP each' },
         ],
         classified: 'No Classified Objectives.',
-        deployNotes: 'Each player has a rear DZ AND a second DZ within the central strip in the other half. Up to 75pts may deploy in the Central Strip DZ. Cannot deploy in Silhouette contact with Antennas. Exclusion Zones between DZs — no AD or Superior Deployment (except Impersonation).',
+        deployNotes: 'Each player has a rear DZ AND a second DZ within the central strip in the other half. Up to 75pts may deploy in the Central Strip DZ. Cannot deploy in Silhouette contact with Antennas. Dead Zones between DZs — no AD or Superior Deployment (except Impersonation).',
         sharedRules: ['specialist_troops', 'dominate_zo', 'shasvastii', 'baggage', 'secure_hvt_not_used', 'end_of_mission'],
         specialRules: `
             <h4>Dead Zones</h4>
@@ -1543,8 +1549,7 @@ const MISSIONS = [
         ],
         classified: 'None.',
         deployNotes: 'Standard deployment.',
-        sharedRules: ['killing', 'no_quarter', 'hvt_classified_not_used'],
-        specialRules: `
+        thresholdHtml: `
             <h4>Kill Thresholds</h4>
             <table class="rules-table threshold-table"><thead><tr><th>OP</th><th>150</th><th>200</th><th>250</th><th>300</th><th>350</th><th>400</th></tr></thead><tbody>
             <tr><td class="op-val">1</td><td>40–75</td><td>50–100</td><td>65–125</td><td>75–150</td><td>85–175</td><td>100–200</td></tr>
@@ -1557,8 +1562,9 @@ const MISSIONS = [
             <tr><td class="op-val">3</td><td>76–125</td><td>101–150</td><td>126–200</td><td>151–250</td><td>176–274</td><td>201–300</td></tr>
             <tr><td class="op-val">4</td><td>&gt;125</td><td>&gt;150</td><td>&gt;200</td><td>&gt;250</td><td>&gt;275</td><td>&gt;300</td></tr>
             </tbody></table>
-            <p class="text-note">+ 2 OP for killing the enemy Lieutenant.</p>
         `,
+        sharedRules: ['killing', 'no_quarter', 'hvt_classified_not_used'],
+        specialRules: ``,
         skills: [],
         mapData: { type: 'standard', objectives: [] },
         endNotes: ['End of mission: third Game Round. No Quarter (Retreat! not applied).']
@@ -1642,7 +1648,7 @@ const MISSIONS = [
                 effects: ['Normal WIP Roll. Can retry on failure.', 'A Hacked Console can be Hacked again by the other player — both players then count it as Hacked.']
             }
         ],
-        mapData: { type: 'standard', objectives: [
+        mapData: { type: 'standard', quadrantLines: true, objectives: [
             { type: 'console', x: 0.25, y: 0.375, label: 'Console', edgeDist: 'Q1 center' },
             { type: 'console', x: 0.75, y: 0.375, label: 'Console', edgeDist: 'Q2 center' },
             { type: 'console', x: 0.25, y: 0.625, label: 'Console', edgeDist: 'Q3 center' },
@@ -1813,6 +1819,11 @@ function generateMap(mission) {
         }
     }
 
+    // Quadrant reference lines (vertical divider for missions like Superiority)
+    if (md.quadrantLines) {
+        svg += `<line x1="${tx+S/2}" y1="${ty}" x2="${tx+S/2}" y2="${ty+S}" stroke="#374151" stroke-width="1" stroke-dasharray="6 3" opacity="0.6"/>`;
+    }
+
     // Exclusion zone
     if (md.exclusionZone) {
         const ezH = S * 0.167; // ~8" on 48" table
@@ -1843,7 +1854,7 @@ function generateMap(mission) {
     // Objective markers
     const colors = {
         antenna: '#22d3ee', console: '#34d399', beacon: '#f59e0b',
-        objective: '#c084fc', techcoffin: '#fb923c', panoply: '#a78bfa',
+        objective: '#c084fc', techcoffin: '#fb923c', panoply: '#34d399',
         civilian: '#f472b6'
     };
     const shapes = {
@@ -2020,6 +2031,7 @@ function renderMissionDetail(mission) {
     });
     h += `</ul>`;
     if (m.classified) h += `<div class="callout"><div class="callout-label">Classified</div>${m.classified}</div>`;
+    if (m.thresholdHtml) h += m.thresholdHtml;
     h += `</div></div>`;
 
     // Deployment (open by default)

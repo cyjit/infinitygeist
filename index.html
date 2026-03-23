@@ -84,6 +84,11 @@ body {
     height: 64px;
     object-fit: contain;
     flex-shrink: 0;
+    animation: ghost-float 3s ease-in-out infinite;
+}
+@keyframes ghost-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
 }
 .site-header .header-text {
     text-align: left;
@@ -94,6 +99,7 @@ body {
     color: var(--white);
     letter-spacing: 0.05em;
     text-transform: uppercase;
+    margin-bottom: 0;
 }
 .site-header h1 span { color: var(--cyan); }
 .site-header .subtitle {
@@ -570,6 +576,13 @@ body {
     color: var(--text);
 }
 .dep-table tr:last-child td { border-bottom: none; }
+.dep-table tr.dep-hidden { display: none; }
+.dep-table.dep-expanded tr.dep-hidden { display: table-row; }
+.dep-expand-btn {
+    background: none; border: 1px solid var(--cyan); color: var(--cyan); cursor: pointer;
+    padding: 3px 8px; font-size: 0.7rem; vertical-align: middle; border-radius: 4px;
+}
+.dep-expand-btn:hover { background: var(--cyan); color: var(--bg); }
 
 /* Skills */
 .skill-block {
@@ -2165,13 +2178,67 @@ const CLASSIFIEDS = [
 let drawnClassifieds = [];
 
 // ═══════════════════════════════════════════
+// STORAGE UTILITIES
+// ═══════════════════════════════════════════
+
+const STALE_THRESHOLD_MS = 12 * 60 * 60 * 1000; // 12 hours
+let gameState = null; // null = no active game
+
+function isLocalStorageAvailable() {
+    try { const k = '__geist_test__'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return true; }
+    catch (e) { return false; }
+}
+function saveGameState(state) {
+    try { if (isLocalStorageAvailable()) localStorage.setItem('geist_game', JSON.stringify(state)); }
+    catch (e) { /* silent */ }
+}
+function loadGameState() {
+    try {
+        if (!isLocalStorageAvailable()) return null;
+        const raw = localStorage.getItem('geist_game');
+        if (!raw) return null;
+        return JSON.parse(raw);
+    } catch (e) { return null; }
+}
+function clearGameState() {
+    try { if (isLocalStorageAvailable()) localStorage.removeItem('geist_game'); }
+    catch (e) { /* silent */ }
+}
+function isGameStateStale(state) {
+    return state && (Date.now() - state.timestamp > STALE_THRESHOLD_MS);
+}
+function initGameState(missionId) {
+    gameState = {
+        missionId: missionId,
+        objectives: {},
+        counters: {},
+        roundChecks: {},
+        classifiedChecks: [],
+        drawnClassifieds: [],
+        timestamp: Date.now()
+    };
+}
+let _saveTimeout = null;
+function debouncedSave() {
+    clearTimeout(_saveTimeout);
+    _saveTimeout = setTimeout(() => {
+        if (gameState) {
+            gameState.timestamp = Date.now();
+            saveGameState(gameState);
+        }
+    }, 500);
+}
+
+// ═══════════════════════════════════════════
 // RENDER FUNCTIONS
 // ═══════════════════════════════════════════
 
 function renderDeployTable(dep) {
-    let h = `<table class="dep-table"><thead><tr><th>Pts</th><th>SWC</th><th>Table</th><th>DZ</th></tr></thead><tbody>`;
+    const expandIcon = `<svg viewBox="0 0 24 24" width="12" height="12" style="fill:currentColor;vertical-align:middle"><path d="M12 5.83L15.17 9l1.41-1.41L12 3 7.41 7.59 8.83 9 12 5.83zm0 12.34L8.83 15l-1.41 1.41L12 21l4.59-4.59L15.17 15 12 18.17z"/></svg>`;
+    let h = `<table class="dep-table"><thead><tr><th>Pts</th><th>SWC</th><th>Table</th><th>DZ</th><th><button class="dep-expand-btn" onclick="this.closest('table').classList.toggle('dep-expanded')" title="Show all point levels">${expandIcon}</button></th></tr></thead><tbody>`;
     dep.forEach(r => {
-        h += `<tr><td>${r.pts}</td><td>${r.swc}</td><td>${r.table}</td><td>${r.zone}</td></tr>`;
+        const hidden = r.pts !== 300 ? ' class="dep-hidden"' : '';
+        h += `<tr${hidden}><td>${r.pts}</td><td>${r.swc}</td><td>${r.table}</td><td>${r.zone}</td><td></td></tr>`;
     });
     return h + '</tbody></table>';
 }
@@ -2298,7 +2365,7 @@ function renderMissionDetail(mission) {
     h += renderTacticalSupport(m.tacticalSupport);
 
     // Objectives (open by default)
-    h += `<div class="mission-section open"><div class="mission-section-head" onclick="toggleSection(this)"><h3>Mission Objectives</h3><span class="chevron">▼</span></div><div class="mission-section-body">`;
+    h += `<div class="mission-section open"><div class="mission-section-head" onclick="toggleSection(this)"><h3>Mission Objectives</h3><button class="rand-btn" style="font-size:0.6rem;padding:2px 8px;margin-left:auto;margin-right:8px" onclick="event.stopPropagation();clearAndReset('${m.id}')" title="Clear all scoring and start fresh">CLEAR</button><span class="chevron">▼</span></div><div class="mission-section-body">`;
     h += `<ul class="obj-list">`;
     m.objectives.forEach((o, i) => {
         const isEach = /each/.test(o.pts);
@@ -2308,7 +2375,7 @@ function renderMissionDetail(mission) {
             h += `<li class="obj-round-row">`;
             h += `<div class="obj-round-checks">`;
             for (let r = 1; r <= 3; r++) {
-                h += `<label class="round-label"><input type="checkbox" class="round-check" data-pts="${ptsVal}" onchange="recalcScore()"><span class="round-tag">R${r}</span></label>`;
+                h += `<label class="round-label"><input type="checkbox" class="round-check" data-pts="${ptsVal}" data-obj-idx="${i}" data-round="${r}" onchange="recalcScore()"><span class="round-tag">R${r}</span></label>`;
             }
             h += `</div>`;
             h += `<span class="obj-text">${o.text}</span><span class="obj-pts">${o.pts}</span>`;
@@ -2320,13 +2387,13 @@ function renderMissionDetail(mission) {
             h += `<li>`;
             h += `<div class="obj-counter">`;
             h += `<button class="obj-btn" onclick="adjustObj(this,-1)">−</button>`;
-            h += `<span class="obj-count" data-pts="${ptsVal}" data-max="${maxVal}">0</span>`;
+            h += `<span class="obj-count" data-pts="${ptsVal}" data-max="${maxVal}" data-counter-idx="${i}">0</span>`;
             h += `<button class="obj-btn" onclick="adjustObj(this,1)">+</button>`;
             h += `</div>`;
             h += `<span class="obj-text">${o.text}</span><span class="obj-pts">${o.pts}</span>`;
             h += `</li>`;
         } else {
-            h += `<li><input type="checkbox" class="obj-check" id="obj-${i}" onchange="recalcScore()"><span class="obj-text">${o.text}</span><span class="obj-pts">${o.pts}</span></li>`;
+            h += `<li><input type="checkbox" class="obj-check" id="obj-${i}" data-obj-idx="${i}" onchange="recalcScore()"><span class="obj-text">${o.text}</span><span class="obj-pts">${o.pts}</span></li>`;
         }
     });
     h += `</ul>`;
@@ -2337,7 +2404,7 @@ function renderMissionDetail(mission) {
         const cPts = cPtsMatch ? parseInt(cPtsMatch[1]) : 1;
         let boxes = '';
         for (let ci = 0; ci < m.classifiedCount; ci++) {
-            boxes += `<input type="checkbox" class="class-check" data-pts="${cPts}" onchange="recalcScore()">`;
+            boxes += `<input type="checkbox" class="class-check" data-pts="${cPts}" data-class-idx="${ci}" onchange="recalcScore()">`;
         }
         const hint = `<span class="class-pts-hint">${cPts} OP each</span>`;
         h += `<div class="callout"><div class="callout-label">Classified${boxes}${hint}<button class="class-draw-btn" onclick="drawClassified()"><img src="${ICON_CARDS}" style="width:11px;height:11px;filter:brightness(0) saturate(100%) invert(79%) sepia(63%) saturate(500%) hue-rotate(155deg) brightness(105%)">Draw</button></div>${m.classified}<div class="drawn-list" id="drawnList"></div></div>`;
@@ -2717,8 +2784,47 @@ function navigate(route) {
     window.location.hash = route;
 }
 
-function renderRoute() {
+function rehydrateDOM() {
+    if (!gameState) return;
+    // Restore objective checkboxes
+    document.querySelectorAll('.obj-check').forEach(c => {
+        const key = 'obj-' + c.dataset.objIdx;
+        if (gameState.objectives[key]) { c.checked = true; c.closest('li').classList.add('done'); }
+    });
+    // Restore counters
+    document.querySelectorAll('.obj-count').forEach(span => {
+        const key = 'counter-' + span.dataset.counterIdx;
+        const val = gameState.counters[key];
+        if (val !== undefined && val > 0) { span.textContent = val; span.closest('li').classList.add('done-counter'); }
+    });
+    // Restore round checkboxes
+    document.querySelectorAll('.round-check').forEach(c => {
+        const key = 'round-' + c.dataset.objIdx + '-r' + c.dataset.round;
+        if (gameState.roundChecks[key]) c.checked = true;
+    });
+    // Restore classified checkboxes
+    document.querySelectorAll('.class-check').forEach(c => {
+        const idx = parseInt(c.dataset.classIdx);
+        if (gameState.classifiedChecks[idx]) c.checked = true;
+    });
+    // Restore drawn classifieds
+    drawnClassifieds = (gameState.drawnClassifieds || []).slice();
+    renderDrawnClassifieds();
+    // Recompute score display without triggering a save
+    clearTimeout(_saveTimeout);
+    recalcScore();
+    clearTimeout(_saveTimeout); // cancel the save that recalcScore triggered
+}
+
+function clearAndReset(missionId) {
+    clearGameState();
+    initGameState(missionId);
     drawnClassifieds = [];
+    renderRoute(); // re-render in place (hash unchanged, so hashchange won't fire)
+}
+window.clearAndReset = clearAndReset;
+
+function renderRoute() {
     const hash = (window.location.hash || '#missions').slice(1);
     const parts = hash.split('/');
 
@@ -2732,7 +2838,19 @@ function renderRoute() {
     } else if (parts[0] === 'mission' && parts[1]) {
         const m = MISSIONS.find(m => m.id === parts[1]);
         if (m) {
+            // Load saved game state
+            const saved = loadGameState();
+            if (saved && saved.missionId === parts[1] && !isGameStateStale(saved)) {
+                gameState = saved;
+            } else {
+                // Don't clear localStorage yet — only init in-memory state.
+                // Stale/mismatched saves get overwritten on first interaction via debouncedSave.
+                if (saved && isGameStateStale(saved)) clearGameState();
+                initGameState(parts[1]);
+            }
+            drawnClassifieds = [];
             content.innerHTML = renderMissionDetail(m);
+            rehydrateDOM();
             window.scrollTo({ top: 0 });
         } else {
             content.innerHTML = '<p>Mission not found.</p>';
@@ -2778,6 +2896,9 @@ function recalcScore() {
     let total = 0;
     // Single checkboxes
     document.querySelectorAll('.obj-check').forEach(c => {
+        if (gameState && c.dataset.objIdx !== undefined) {
+            gameState.objectives['obj-' + c.dataset.objIdx] = c.checked;
+        }
         if (c.checked) {
             const pts = c.closest('li').querySelector('.obj-pts').textContent;
             const match = pts.match(/(\d+)/);
@@ -2789,19 +2910,29 @@ function recalcScore() {
     document.querySelectorAll('.obj-count').forEach(span => {
         const count = parseInt(span.textContent) || 0;
         const ptsEach = parseInt(span.dataset.pts) || 0;
+        if (gameState && span.dataset.counterIdx !== undefined) {
+            gameState.counters['counter-' + span.dataset.counterIdx] = count;
+        }
         total += count * ptsEach;
         span.closest('li').classList.toggle('done-counter', count > 0);
     });
     // Round checkboxes (End of each Game Round)
-    document.querySelectorAll('.round-check:checked').forEach(c => {
-        total += parseInt(c.dataset.pts) || 0;
+    document.querySelectorAll('.round-check').forEach(c => {
+        if (gameState && c.dataset.objIdx !== undefined && c.dataset.round !== undefined) {
+            gameState.roundChecks['round-' + c.dataset.objIdx + '-r' + c.dataset.round] = c.checked;
+        }
+        if (c.checked) total += parseInt(c.dataset.pts) || 0;
     });
     // Classified checkboxes
-    document.querySelectorAll('.class-check:checked').forEach(c => {
-        total += parseInt(c.dataset.pts) || 0;
+    document.querySelectorAll('.class-check').forEach(c => {
+        if (gameState && c.dataset.classIdx !== undefined) {
+            gameState.classifiedChecks[parseInt(c.dataset.classIdx)] = c.checked;
+        }
+        if (c.checked) total += parseInt(c.dataset.pts) || 0;
     });
     const el = document.getElementById('objScoreTotal');
     if (el) el.textContent = total + ' OP';
+    debouncedSave();
 }
 function adjustObj(btn, delta) {
     const countSpan = btn.closest('.obj-counter').querySelector('.obj-count');
@@ -2821,10 +2952,12 @@ function drawClassified() {
     const pool = CLASSIFIEDS.map((c, i) => i).filter(i => !drawnClassifieds.includes(i));
     const pick = pool[Math.floor(Math.random() * pool.length)];
     drawnClassifieds.push(pick);
+    if (gameState) { gameState.drawnClassifieds = drawnClassifieds.slice(); debouncedSave(); }
     renderDrawnClassifieds();
 }
 function dismissClassified(idx) {
     drawnClassifieds = drawnClassifieds.filter(i => i !== idx);
+    if (gameState) { gameState.drawnClassifieds = drawnClassifieds.slice(); debouncedSave(); }
     renderDrawnClassifieds();
 }
 function renderDrawnClassifieds() {

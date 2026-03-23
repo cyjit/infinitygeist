@@ -280,6 +280,14 @@ body {
     width: 13px; height: 13px; vertical-align: middle; margin-right: 4px;
     filter: brightness(0) saturate(100%) invert(79%) sepia(63%) saturate(500%) hue-rotate(155deg) brightness(105%);
 }
+.tile-fav {
+    position: absolute; top: 8px; right: 10px;
+    background: none; border: none; cursor: pointer;
+    font-size: 1.1rem; color: var(--text-dim); opacity: 0.4;
+    transition: all 0.2s; z-index: 2; padding: 2px; line-height: 1;
+}
+.tile-fav:hover { opacity: 1; color: var(--cyan); }
+.tile-fav.is-fav { opacity: 1; color: var(--orange); }
 .tag { display: inline-flex; align-items: center; }
 .reinf-yes { color: var(--green); }
 .reinf-no { color: var(--red); }
@@ -2230,6 +2238,37 @@ function debouncedSave() {
 }
 
 // ═══════════════════════════════════════════
+// USER PREFERENCES
+// ═══════════════════════════════════════════
+
+const PREFS_VERSION = 1;
+let prefs = null;
+
+function defaultPrefs() { return { version: PREFS_VERSION, favorites: [] }; }
+function loadPreferences() {
+    try {
+        if (!isLocalStorageAvailable()) return defaultPrefs();
+        const raw = localStorage.getItem('geist_prefs');
+        if (!raw) return defaultPrefs();
+        const p = JSON.parse(raw);
+        if (p.version !== PREFS_VERSION) return defaultPrefs();
+        return p;
+    } catch (e) { return defaultPrefs(); }
+}
+function savePreferences(p) {
+    try { if (isLocalStorageAvailable()) localStorage.setItem('geist_prefs', JSON.stringify(p)); }
+    catch (e) { /* silent */ }
+}
+function toggleFavorite(missionId) {
+    const idx = prefs.favorites.indexOf(missionId);
+    if (idx === -1) prefs.favorites.push(missionId);
+    else prefs.favorites.splice(idx, 1);
+    savePreferences(prefs);
+    renderRoute();
+}
+window.toggleFavorite = toggleFavorite;
+
+// ═══════════════════════════════════════════
 // RENDER FUNCTIONS
 // ═══════════════════════════════════════════
 
@@ -2456,7 +2495,9 @@ function toggleMissionFilter(filter) {
 }
 
 function renderMissionTile(m) {
+    const isFav = prefs && prefs.favorites.includes(m.id);
     let h = `<div class="mission-tile" onclick="navigate('mission/${m.id}')">`;
+    h += `<button class="tile-fav${isFav ? ' is-fav' : ''}" onclick="event.stopPropagation();toggleFavorite('${m.id}')" title="Favorite">★</button>`;
     h += `<div class="tile-name">${m.name}</div>`;
     h += `<div class="tile-stats">`;
     h += `<span class="tile-stat"><img src="${ICON_CLASSIFIED}" class="tile-icon" alt="">Class ${m.classifiedCount}</span>`;
@@ -2485,7 +2526,12 @@ function renderMissionGrid() {
     }
 
     // Default: ITS + DA grid
-    const its = MISSIONS.filter(m => m.category === 'its').sort((a,b) => a.name.localeCompare(b.name));
+    const favs = prefs ? prefs.favorites : [];
+    const its = MISSIONS.filter(m => m.category === 'its').sort((a,b) => {
+        const af = favs.includes(a.id) ? 0 : 1;
+        const bf = favs.includes(b.id) ? 0 : 1;
+        return af !== bf ? af - bf : a.name.localeCompare(b.name);
+    });
     const da = MISSIONS.filter(m => m.category === 'da').sort((a,b) => a.name.localeCompare(b.name));
 
     h += `<div class="mission-grid">`;
@@ -2876,6 +2922,7 @@ window.addEventListener('hashchange', renderRoute);
 
 // Initial render
 document.getElementById('diceIcon').src = ICON_D20;
+prefs = loadPreferences();
 renderRoute();
 
 // Section toggle

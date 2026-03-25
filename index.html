@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<!-- BUILD: geist-2026032501 -->
 <!--
     PROJECT: ITS Season 17 Quick Reference
     DESCRIPTION: A lightweight, single-file webapp for the Infinity Tournament System Season 17 rules.
@@ -12,6 +13,8 @@
     <title>Mission Geist — ITS 17</title>
     <meta name="description" content="Quick reference for Infinity the Game ITS Season 17: Seekers. Missions, rules, and deployment maps.">
     <link rel="icon" type="image/png" href="geist.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0c101d">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -989,7 +992,7 @@ body {
             <h1>Mission <span>Geist</span></h1>
             <div class="subtitle">ITS 17 — Seekers</div>
             <div class="subtitle" style="font-size:0.55rem;margin-top:2px;opacity:0.7">Your Unofficial Companion</div>
-            <div class="version-info"><a href="https://downloads.corvusbelli.com/infinity/organized-play/its-rules-season-17-en-v1.0.2.pdf" target="_blank" rel="noopener" class="version-link">ITS Rules v1.0.2</a> — Updated March 22, 2026</div>
+            <div class="version-info"><a href="https://downloads.corvusbelli.com/infinity/organized-play/its-rules-season-17-en-v1.0.2.pdf" target="_blank" rel="noopener" class="version-link">ITS Rules v1.0.2</a> — Updated March 25, 2026</div>
             <a href="https://forms.gle/1ZQMZHwR7cprbxuC7" target="_blank" rel="noopener" class="feedback-link">Submit Feedback</a>
             <a href="https://infinitynewengland.com" target="_blank" rel="noopener" class="feedback-link">Courtesy of Infinity New England</a>
         </div>
@@ -1017,6 +1020,7 @@ body {
         <div class="attr-body" style="margin-top:8px;font-size:0.55rem;color:var(--text-muted);max-width:480px;margin-left:auto;margin-right:auto">
             Infinity Mission Geist is a community tool developed by volunteers. This tool is not directly operated or endorsed by Corvus Belli S.L.L. &ldquo;Infinity&rdquo; and the Infinity logo are trademarks of Corvus Belli.
         </div>
+        <div class="attr-body" style="margin-top:6px;font-size:0.5rem;color:var(--text-muted)">Build 2026032501</div>
     </footer>
 </div>
 
@@ -3128,5 +3132,10 @@ window.addEventListener('scroll', () => {
 
 <script data-goatcounter="https://gcits17.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+}
+</script>
 </body>
 </html>

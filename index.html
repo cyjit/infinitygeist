@@ -416,6 +416,8 @@ body {
     padding: 0 16px 16px;
 }
 .mission-section.open .mission-section-body { display: block; }
+.mission-section-body h4 { margin-top: 18px; }
+.mission-section-body h4:first-child { margin-top: 0; }
 
 /* Objectives list */
 .obj-list { list-style: none; }
@@ -460,12 +462,32 @@ body {
 .obj-text { flex: 1; }
 .obj-list li.done .obj-text { text-decoration: line-through; color: var(--text-muted); }
 .obj-score-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 8px 0 0; margin-top: 4px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 0 0; margin-top: 8px;
     border-top: 1px solid var(--border);
     font-size: 0.75rem; color: var(--text-muted);
 }
-.obj-score-total { font-weight: 700; color: var(--orange); font-size: 0.85rem; }
+.obj-score-total { font-weight: 700; color: var(--orange); font-size: 0.95rem; min-width: 20px; text-align: right; }
+.op-progress-bar {
+    flex: 1; height: 22px; position: relative;
+    background: var(--bg-surface); border: 1px solid var(--border-light);
+    border-radius: 3px; overflow: hidden;
+}
+.op-progress-fill {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
+    background: linear-gradient(90deg, var(--orange), var(--cyan));
+    opacity: 0.35; transition: width 0.3s ease;
+}
+.op-progress-pips {
+    position: relative; display: flex; height: 100%;
+}
+.op-pip {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem; font-weight: 700; color: var(--text-muted);
+    border-right: 1px solid var(--border); z-index: 1;
+}
+.op-pip:last-child { border-right: none; }
+.op-pip.filled { color: var(--text-primary); }
 
 /* +/- counter for repeatable objectives */
 .obj-counter { display: inline-flex; align-items: center; flex-shrink: 0; }
@@ -506,6 +528,8 @@ body {
 .class-pts-hint { font-size: 0.62rem; color: var(--text-muted); font-weight: 400; margin-left: 2px; }
 .obj-round-row { flex-wrap: wrap; }
 .obj-round-checks { display: flex; gap: 6px; align-items: center; margin-right: 6px; }
+.obj-round-checks.stacked { gap: 8px; }
+.round-group { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .round-label { display: inline-flex; align-items: center; gap: 2px; cursor: pointer; }
 .round-check {
     appearance: none; -webkit-appearance: none;
@@ -987,7 +1011,10 @@ body {
 <div class="app" id="app">
     <!-- Header -->
     <header class="site-header">
-        <img src="geist.png" alt="Mission Geist" class="header-logo">
+        <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">
+            <img src="geist.png" alt="Mission Geist" class="header-logo">
+            <div style="font-family:'Courier New',Courier,monospace;font-size:0.45rem;color:var(--cyan);letter-spacing:0.08em;white-space:nowrap;margin-top:2px;opacity:0.85;text-transform:uppercase">Have fun at Adepticon!</div>
+        </div>
         <div class="header-text">
             <h1>Mission <span>Geist</span></h1>
             <div class="subtitle">ITS 17 — Seekers</div>
@@ -1181,7 +1208,7 @@ const MISSIONS = [
         objectives: [
             { text: 'Accomplish Common Classified Objectives', pts: '1 each (max 6)' },
             { text: 'End of game: accomplished more Classified Objectives than adversary', pts: '1 OP' },
-            { text: 'End of game: accomplished at least 1 Classified Objective in each Game Round', pts: '1 OP' },
+            { text: 'End of game: accomplished at least 1 Classified Objective in each Game Round (even if the Classified Objective gets canceled for that player)', pts: '1 OP' },
         ],
         classified: 'Each player has 1 Private Classified Objective (2 OP).',
         deployNotes: 'Cannot deploy in Silhouette contact with the Akial Antenna or any HVT.',
@@ -1191,7 +1218,8 @@ const MISSIONS = [
             <p>Both players share 2 Common Classified Objectives each Game Round (Public Information).</p>
             <p>At the beginning of the first Game Round, each player shuffles their Classified Deck, draws two cards, selects one as their Private Classified Objective, and the other as a Common Classified Objective. Both reveal Common Classifieds at the same time.</p>
             <p>At the beginning of Rounds 2 and 3, unaccomplished Common Classifieds are discarded. Each player draws two more cards, chooses one as a Common Classified, discards the other.</p>
-            <p>Common Classifieds checked "at the end of the game" or "during the game" can be accomplished at the end of any Player Turn. If both players accomplish the same Common Classified in the same Round, both count.</p>
+            <p>Common Classifieds checked "at the end of the game" or "during the game" can be accomplished at the end of any Player Turn. If both players accomplish the same Common Classified in the same Round, both count. A Common Classified Objective can only be accomplished after it has been drawn.</p>
+            <p>If a player's deck runs out of cards, shuffle their discard pile into a new deck.</p>
 
             <h4>Private Classified Objective</h4>
             <p>Cannot be used to Emit Akial Interference, and cannot be canceled by it. Private Information.</p>
@@ -1498,12 +1526,12 @@ const MISSIONS = [
         hvts: 1, classifiedCount: 0, retreat: true,
         deployment: DEPLOYMENT_STANDARD, deployType: 'crossing',
         objectives: [
-            { text: 'End of each Game Round: Dominate a Dead Zone', pts: '1 OP each' },
+            { text: 'End of each Game Round: Dominate a Dead Zone', pts: '1 OP each', perRound: 2 },
             { text: 'End of game: Dominate both Dead Zones', pts: '2 OP' },
             { text: 'End of game: have an Activated Antenna', pts: '1 OP each' },
         ],
         classified: 'No Classified Objectives.',
-        deployNotes: 'Each player has a rear DZ AND a second DZ within the central strip in the other half. Up to 75pts may deploy in the Central Strip DZ. Cannot deploy in Silhouette contact with Antennas. Dead Zones between DZs — no AD or Superior Deployment (except Impersonation).',
+        deployNotes: 'Each player has a rear DZ AND a second DZ within the central strip in the other half. Up to 75pts may deploy in the Central Strip DZ. Cannot deploy in Silhouette contact with Antennas. Dead Zones are Exclusion Zones — AD or Superior Deployment Labels cannot be used to deploy inside them.',
         sharedRules: ['specialist_troops', 'dominate_zo', 'shasvastii', 'baggage', 'secure_hvt_not_used', 'end_of_mission'],
         specialRules: `
             <h4>Dead Zones</h4>
@@ -1512,8 +1540,8 @@ const MISSIONS = [
             <h4>Antennas</h4>
             <p>2 Antennas on the central line: 12" from table edges (300+), 8" (200/250), 6" (150). Represented by Transmission Antenna Tokens (40mm).</p>
 
-            <h4>Superior Deployment</h4>
-            <p>With the exception of Impersonation, Special Skills with the Superior Deployment Label cannot be used in this scenario.</p>
+            <h4>Exclusion Zones</h4>
+            <p>The Dead Zones are Exclusion Zones. Any Special Skill with the Airborne Deployment (AD) or Superior Deployment Labels cannot be used to deploy inside these areas.</p>
         `,
         skills: [
             {
@@ -1832,7 +1860,7 @@ const MISSIONS = [
     {
         id: 'battleground', name: 'Battleground', category: 'da',
         tacticalSupport: 0, reinforcements: false,
-        hvts: 0, classifiedCount: 0, retreat: true,
+        hvts: 0, classifiedCount: 0, retreat: false,
         deployment: DEPLOYMENT_STANDARD, deployType: 'standard',
         objectives: [
             { text: 'End of game: dominate nearest Sector to your DZ', pts: '1 OP' },
@@ -1843,10 +1871,11 @@ const MISSIONS = [
         ],
         classified: 'None.',
         deployNotes: 'Standard deployment.',
-        sharedRules: ['dominate_zo', 'shasvastii', 'baggage', 'killing', 'key_ops', 'hvt_classified_not_used', 'end_of_mission'],
+        sharedRules: ['dominate_zo', 'shasvastii', 'baggage', 'killing', 'key_ops', 'hvt_classified_not_used'],
         specialRules: `
             <h4>Sectors (ZO)</h4>
-            <p>At end of game, 3 Sectors are marked: 8" deep strips (4" for 150pt). Two are 4" from the center line (one each side), the third is 8" in the central area.</p>
+            <p>At end of game, 3 Sectors are marked. In 200/250/300/350/400 point games, Sectors are 8" deep and as wide as the table. Two are placed 4" from the center line, one on each side, and the third is an 8" deep strip in the central area.</p>
+            <p>In 150 point games, Sectors are 4" deep and as wide as the table. Two are placed 2" from the center line, one on each side, and the third is a 4" deep strip in the central area.</p>
             <h4>Threaten Key Ops</h4>
             <p>A Key Ops is Threatened if the opponent has at least one Trooper (Model, not Marker) in a non-Null state inside the Key Ops' Zone of Control.</p>
         `,
@@ -1870,7 +1899,7 @@ const MISSIONS = [
         sharedRules: ['killing', 'key_ops', 'no_quarter', 'hvt_classified_not_used'],
         specialRules: `
             <h4>Reinforced Tactical Link</h4>
-            <p>Loss of Lieutenant rule does not apply. Lieutenant identity is always <strong>Open Information</strong>. Must indicate which Marker is the Lieutenant if in Marker State. Lieutenant must be placed on table at start of first Game Round. Players may not deploy Lieutenants in Hidden Deployment. If the player lacks a Lieutenant during their Tactical Phase, they must name a new one without Order expenditure (also Open Information).</p>
+            <p>Loss of Lieutenant rule does not apply. Lieutenant identity is always <strong>Open Information</strong>. Must indicate which Marker is the Lieutenant if in Marker State, or which Markers are the Lieutenant in the case of a Holoprojector. Lieutenant must be placed on table at start of first Game Round. Players may not deploy Lieutenants in Hidden Deployment. If the player lacks a Lieutenant during their Tactical Phase because the Trooper was not deployed, or is in the Isolated State or any Null State (Unconscious, Dead, Sepsitorized...), the player must name a new Lieutenant without Order expenditure (also Open Information). This new Lieutenant must be a Model or Marker placed on the game table.</p>
             <h4>Key Ops Killing</h4>
             <p>Key Ops counts as Killing a target if they cause the target to be in a Null State at end of game, or cause the loss of one or more Wounds/STR during the Order in which the target enters Dead State.</p>
             <h4>Lieutenant Killing</h4>
@@ -2416,12 +2445,25 @@ function renderMissionDetail(mission) {
         const isPerRound = /end of each game round/i.test(o.text);
         if (isPerRound) {
             const ptsVal = parseInt((o.pts.match(/(\d+)/) || [])[1]) || 1;
+            const perRound = o.perRound || 1;
             h += `<li class="obj-round-row">`;
-            h += `<div class="obj-round-checks">`;
-            for (let r = 1; r <= 3; r++) {
-                h += `<label class="round-label"><input type="checkbox" class="round-check" data-pts="${ptsVal}" data-obj-idx="${i}" data-round="${r}" onchange="recalcScore()"><span class="round-tag">R${r}</span></label>`;
+            if (perRound > 1) {
+                h += `<div class="obj-round-checks stacked">`;
+                for (let r = 1; r <= 3; r++) {
+                    h += `<div class="round-group"><span class="round-tag">R${r}</span>`;
+                    for (let p = 0; p < perRound; p++) {
+                        h += `<input type="checkbox" class="round-check" data-pts="${ptsVal}" data-obj-idx="${i}" data-round="${r}" data-sub="${p}" onchange="recalcScore()">`;
+                    }
+                    h += `</div>`;
+                }
+                h += `</div>`;
+            } else {
+                h += `<div class="obj-round-checks">`;
+                for (let r = 1; r <= 3; r++) {
+                    h += `<label class="round-label"><input type="checkbox" class="round-check" data-pts="${ptsVal}" data-obj-idx="${i}" data-round="${r}" onchange="recalcScore()"><span class="round-tag">R${r}</span></label>`;
+                }
+                h += `</div>`;
             }
-            h += `</div>`;
             h += `<span class="obj-text">${o.text}</span><span class="obj-pts">${o.pts}</span>`;
             h += `</li>`;
         } else if (isEach) {
@@ -2441,7 +2483,6 @@ function renderMissionDetail(mission) {
         }
     });
     h += `</ul>`;
-    h += `<div class="obj-score-row"><span>OP Scored</span><span class="obj-score-total" id="objScoreTotal">0 OP</span></div>`;
     // Classified callout with scoring checkboxes and draw button
     if (m.classified && m.classifiedCount > 0) {
         const cPtsMatch = m.classified.match(/\((\d+) OP/);
@@ -2456,6 +2497,14 @@ function renderMissionDetail(mission) {
         h += `<div class="callout"><div class="callout-label">Classified</div>${m.classified}</div>`;
     }
     if (m.thresholdHtml) h += m.thresholdHtml;
+    // OP Scored — progress bar + total
+    h += `<div class="obj-score-row">`;
+    h += `<span>OP Scored</span>`;
+    h += `<div class="op-progress-bar"><div class="op-progress-fill" id="opProgressFill"></div><div class="op-progress-pips">`;
+    for (let p = 1; p <= 10; p++) h += `<span class="op-pip">${p}</span>`;
+    h += `</div></div>`;
+    h += `<span class="obj-score-total" id="objScoreTotal">0</span>`;
+    h += `</div>`;
     h += `</div></div>`;
 
     // Deployment (open by default)
@@ -2567,6 +2616,7 @@ function renderSeasonRules() {
         </ul>
         <h3>Secure Treasure</h3>
         <p>At end of game, can replace one Classified Objective with Secure Treasure. Accomplished when a non-Null Trooper is inside the enemy Treasure's ZoC while your own Treasure's ZoC is free of enemy Troopers (not counting Null). Provides the same OP as a normal Classified. A Sāchā can Secure Treasure even if the player's own Treasure is not free of enemies.</p>
+        <p>A Classified that has been renounced to be used as an INTELCOM Card cannot be replaced with Secure Treasure. A player can only replace one Classified with <em>either</em> Secure Treasure or Secure HVT (not both).</p>
         <h3>Open Treasure (Sāchā Only)</h3>
         <p><strong>Short Skill — Attack, Scenario.</strong> No Roll needed. Roll on the Treasure Chart for one weapon/equipment. One use per Sāchā per Treasure Token. Re-roll duplicates. Treasure Token stays on the table after opening.</p>
         <h3>Treasure Chart</h3>
@@ -2615,9 +2665,9 @@ function renderSeasonRules() {
         <ul>
             <li>WIP+3 Roll to CivEvac. Can retry on failure.</li>
             <li>CivEvaced Civilian stays in Silhouette contact with the Trooper at end of movement.</li>
-            <li>Max 2 Civilians CivEvaced per Trooper (unless scenario says otherwise).</li>
+            <li>Max 2 Civilians CivEvaced per Trooper.</li>
             <li>Civilian must always stay on the table even if carrier enters Null State.</li>
-            <li>CivEvac cancelled if: carrier enters Isolated/Null/Immobilized State, joins a Fireteam, enters Marker State (Camo, etc.), gains Impetuous via Frenzy, or cancelled voluntarily (no Roll).</li>
+            <li>CivEvac cancelled if: carrier enters Isolated/Null/Immobilized State, joins a Fireteam, enters Marker State (Camo, etc.), gains Impetuous via Frenzy, or cancelled voluntarily (no Roll). When cancelled, Civilian must be left on a horizontal surface of the game table.</li>
             <li>Hostile Civilians: WIP Roll does not get +3 MOD.</li>
         </ul>
     </div></div>`;
@@ -2636,6 +2686,7 @@ function renderSeasonRules() {
             <li>Carried Trooper cannot declare Orders or AROs.</li>
             <li>Both provoke only one ARO from each enemy. Template Weapons follow Into Close Combat rule.</li>
             <li>Carried Trooper doesn't block LoF or provide +1 B in CC.</li>
+            <li>Unless a Special Scenario Rule indicates the contrary, a Trooper in Casevac State cannot carry more than one Immobilized, Stunned or Unconscious Trooper.</li>
         </ul>
         <h3>Cancellation</h3>
         <ul>
@@ -2706,6 +2757,7 @@ function renderTournamentRules() {
 
     h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Classified Objectives</h2><span class="chevron">▼</span></div><div class="rules-section-body">
         <p>Usually 1 OP each (varies by scenario). Each Classified provides its OP once per game.</p>
+        <p>Classified Objectives are Private Information until they are fulfilled. The player must keep their Classified Objective cards and show them to their opponent if demanded once the Objective has been fulfilled.</p>
         <h3>Selection</h3>
         <p>Draw Classifieds after learning the mission and opponent's faction, before choosing an Army List. Shuffle your Classified Deck in front of opponent, draw two cards per Classified slot, discard one before drawing the next pair.</p>
         <h3>INTELCOM Card</h3>
@@ -2717,6 +2769,7 @@ function renderTournamentRules() {
         </ul>
         <h3>Secure HVT</h3>
         <p>At end of game, can replace one Classified with Secure HVT. Accomplished when a non-Null Trooper is inside the enemy HVT's ZoC, while your own HVT's ZoC is free of enemy Troopers (not counting Null). Same OP as a normal Classified.</p>
+        <p>A Classified that has been renounced to be used as an INTELCOM Card cannot be replaced with Secure HVT. A player can only replace one Classified with <em>either</em> Secure Treasure or Secure HVT (not both).</p>
     </div></div>`;
 
     h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Tactical Support</h2><span class="chevron">▼</span></div><div class="rules-section-body">
@@ -2850,7 +2903,8 @@ function rehydrateDOM() {
     });
     // Restore round checkboxes
     document.querySelectorAll('.round-check').forEach(c => {
-        const key = 'round-' + c.dataset.objIdx + '-r' + c.dataset.round;
+        const sub = c.dataset.sub !== undefined ? '-' + c.dataset.sub : '';
+        const key = 'round-' + c.dataset.objIdx + '-r' + c.dataset.round + sub;
         if (gameState.roundChecks[key]) c.checked = true;
     });
     // Restore classified checkboxes
@@ -2971,7 +3025,8 @@ function recalcScore() {
     // Round checkboxes (End of each Game Round)
     document.querySelectorAll('.round-check').forEach(c => {
         if (gameState && c.dataset.objIdx !== undefined && c.dataset.round !== undefined) {
-            gameState.roundChecks['round-' + c.dataset.objIdx + '-r' + c.dataset.round] = c.checked;
+            const sub = c.dataset.sub !== undefined ? '-' + c.dataset.sub : '';
+            gameState.roundChecks['round-' + c.dataset.objIdx + '-r' + c.dataset.round + sub] = c.checked;
         }
         if (c.checked) total += parseInt(c.dataset.pts) || 0;
     });
@@ -2983,7 +3038,12 @@ function recalcScore() {
         if (c.checked) total += parseInt(c.dataset.pts) || 0;
     });
     const el = document.getElementById('objScoreTotal');
-    if (el) el.textContent = total + ' OP';
+    if (el) el.textContent = total;
+    const fill = document.getElementById('opProgressFill');
+    if (fill) fill.style.width = Math.min(total, 10) * 10 + '%';
+    document.querySelectorAll('.op-pip').forEach((pip, idx) => {
+        pip.classList.toggle('filled', idx < total);
+    });
     debouncedSave();
 }
 function adjustObj(btn, delta) {

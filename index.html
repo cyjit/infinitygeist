@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- BUILD: geist-2026032601 -->
+<!-- BUILD: geist-2026032602 -->
 <!--
     PROJECT: ITS Season 17 Quick Reference
     DESCRIPTION: A lightweight, single-file webapp for the Infinity Tournament System Season 17 rules.
@@ -1149,7 +1149,7 @@ html[data-theme="light"] .ine-logo { filter: brightness(0); }
         <div class="attr-body" style="margin-top:8px;font-size:0.55rem;color:var(--text-muted);max-width:480px;margin-left:auto;margin-right:auto">
             Infinity Mission Geist is a community tool developed by volunteers. This tool is not directly operated or endorsed by Corvus Belli S.L.L. &ldquo;Infinity&rdquo; and the Infinity logo are trademarks of Corvus Belli.
         </div>
-        <div class="attr-body" style="margin-top:6px;font-size:0.5rem;color:var(--text-muted)">Build 2026032601</div>
+        <div class="attr-body" style="margin-top:6px;font-size:0.5rem;color:var(--text-muted)">Build 2026032602</div>
     </footer>
 </div>
 
@@ -2630,7 +2630,7 @@ function renderMissionDetail(mission) {
             boxes += `<input type="checkbox" class="class-check" data-pts="${cPts}" data-class-idx="${ci}" onchange="recalcScore()">`;
         }
         const hint = `<span class="class-pts-hint">${cPts} OP each</span>`;
-        h += `<div class="callout"><div class="callout-label">Classified${boxes}${hint}<button class="class-draw-btn" onclick="drawClassified()"><img src="${ICON_CARDS}" style="width:11px;height:11px;filter:var(--icon-filter)">Draw</button></div>${m.classified}<div class="drawn-list" id="drawnList"></div></div>`;
+        h += `<div class="callout"><div class="callout-label">Classified${boxes}${hint}<button class="class-draw-btn" onclick="drawClassified()"><img src="${ICON_CARDS}" style="width:11px;height:11px;filter:var(--icon-filter)">Draw</button></div>${m.classified}<div class="drawn-list" id="drawnList"></div><p style="font-size:0.55rem;color:var(--text-muted);margin:8px 0 0;line-height:1.4">Buy your classified deck. Digital draw is not sufficient for Infinity Tournament Systems events, Akial Interference, or Resilience Operations. Be cool – support the rules!</p></div>`;
     } else if (m.classified) {
         h += `<div class="callout"><div class="callout-label">Classified</div>${m.classified}</div>`;
     }

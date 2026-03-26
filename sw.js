@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'geist-2026032502';
+const CACHE_VERSION = 'geist-2026032601';
 
 const PRECACHE_URLS = [
   './',
@@ -7,6 +7,7 @@ const PRECACHE_URLS = [
   './geist-192.png',
   './geist-512.png',
   './adepticon_logo.png',
+  './ine.svg',
   'https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap',
 ];
 

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'geist-2026032501';
+const CACHE_VERSION = 'geist-2026032502';
 
 const PRECACHE_URLS = [
   './',

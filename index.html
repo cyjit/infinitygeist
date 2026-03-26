@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- BUILD: geist-2026032502 -->
+<!-- BUILD: geist-2026032601 -->
 <!--
     PROJECT: ITS Season 17 Quick Reference
     DESCRIPTION: A lightweight, single-file webapp for the Infinity Tournament System Season 17 rules.
@@ -18,6 +18,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+try {
+    var _p = JSON.parse(localStorage.getItem('geist_prefs'));
+    if (_p && _p.theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    if (_p && _p.density === 'comfortable') document.documentElement.style.setProperty('--base-size', '18px');
+} catch(e) {}
+</script>
 <style>
 /* ═══════════════════════════════════════════
    CSS Variables & Reset
@@ -45,11 +52,43 @@
     --red-dim: rgba(239,68,68,0.12);
     --radius: 6px;
     --radius-lg: 10px;
+    --icon-filter: brightness(0) saturate(100%) invert(79%) sepia(63%) saturate(500%) hue-rotate(155deg) brightness(105%);
+    --icon-filter-glow: brightness(0) saturate(100%) invert(79%) sepia(63%) saturate(500%) hue-rotate(155deg) brightness(105%) drop-shadow(0 0 3px rgba(34,211,238,0.6));
+}
+
+html[data-theme="light"] {
+    --bg: #f0f2f5;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f5f7fa;
+    --bg-surface: #e8eaed;
+    --border: #d1d5db;
+    --border-light: #e5e7eb;
+    --text: #1f2937;
+    --text-dim: #4b5563;
+    --text-muted: #6b7280;
+    --white: #111827;
+    --cyan: #0891b2;
+    --cyan-light: #06b6d4;
+    --cyan-glow: rgba(8,145,178,0.2);
+    --cyan-bg: rgba(8,145,178,0.08);
+    --orange: #d97706;
+    --orange-dim: rgba(217,119,6,0.12);
+    --green: #059669;
+    --green-dim: rgba(5,150,105,0.1);
+    --red: #dc2626;
+    --red-dim: rgba(220,38,38,0.1);
+    --icon-filter: brightness(0) saturate(100%) invert(40%) sepia(90%) saturate(500%) hue-rotate(155deg) brightness(90%);
+    --icon-filter-glow: brightness(0) saturate(100%) invert(40%) sepia(90%) saturate(500%) hue-rotate(155deg) brightness(90%) drop-shadow(0 0 3px rgba(8,145,178,0.3));
+}
+html[data-theme="light"] body {
+    background-image:
+        linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; font-size: var(--base-size, 16px); }
 
 body {
     font-family: 'Exo 2', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -141,6 +180,54 @@ body {
 }
 .site-header .feedback-link:hover {
     color: #7dd3fc;
+}
+.ine-logo { filter: brightness(0) invert(1); }
+html[data-theme="light"] .ine-logo { filter: brightness(0); }
+
+.header-controls {
+    display: flex; gap: 8px; align-items: center;
+    justify-content: flex-end; padding: 6px 0 0;
+}
+.header-controls .ctrl-btn {
+    background: none; border: none; cursor: pointer;
+    padding: 5px; border-radius: var(--radius); transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); text-decoration: none;
+}
+.header-controls .ctrl-btn svg {
+    width: 18px; height: 18px; fill: currentColor;
+}
+.header-controls .ctrl-btn:hover { color: var(--cyan); text-shadow: 0 0 8px var(--cyan-glow); }
+
+/* Settings page */
+.settings-page { max-width: 480px; }
+.settings-page h2 {
+    font-size: 1.1rem; font-weight: 700; color: var(--white);
+    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 20px;
+}
+.settings-group { margin-bottom: 24px; }
+.settings-group-label {
+    font-size: 0.7rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+}
+.settings-options { display: flex; gap: 8px; flex-wrap: wrap; }
+.settings-opt {
+    background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text-dim); font-family: inherit; font-size: 0.8rem;
+    font-weight: 600; padding: 8px 16px; border-radius: var(--radius);
+    cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.settings-opt:hover { background: var(--bg-card-hover); color: var(--text); }
+.settings-opt.active {
+    background: var(--cyan-bg); border-color: var(--cyan);
+    color: var(--cyan); box-shadow: 0 0 8px var(--cyan-glow);
+}
+.settings-preview {
+    margin-top: 16px; padding: 12px 16px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); font-size: 0.82rem; color: var(--text-dim);
+    line-height: 1.6;
 }
 
 .nav-bar {
@@ -278,11 +365,11 @@ body {
 }
 .tile-icon {
     width: 18px; height: 18px;
-    filter: brightness(0) saturate(100%) invert(79%) sepia(63%) saturate(500%) hue-rotate(155deg) brightness(105%) drop-shadow(0 0 3px rgba(34,211,238,0.6));
+    filter: var(--icon-filter-glow);
 }
 .meta-icon {
     width: 13px; height: 13px; vertical-align: middle; margin-right: 4px;
-    filter: brightness(0) saturate(100%) invert(79%) sepia(63%) saturate(500%) hue-rotate(155deg) brightness(105%);
+    filter: var(--icon-filter);
 }
 .tile-fav {
     position: absolute; top: 8px; right: 10px;
@@ -575,7 +662,7 @@ body {
 .drawn-title { font-weight: 700; color: var(--text); margin-bottom: 2px; }
 .drawn-title .drawn-icons { margin-left: 6px; }
 .drawn-icons img { width: 12px; height: 12px; margin-right: 2px; vertical-align: middle;
-    filter: brightness(0) saturate(100%) invert(79%) sepia(63%) saturate(500%) hue-rotate(155deg) brightness(105%);
+    filter: var(--icon-filter);
 }
 .drawn-dt { font-size: 0.7rem; color: var(--cyan); font-style: italic; margin-bottom: 3px; }
 .drawn-text { color: var(--text-muted); line-height: 1.4; }
@@ -908,7 +995,7 @@ body {
 #diceToggle:hover { background: var(--cyan-bg); box-shadow: 0 0 14px var(--cyan-glow); }
 #diceIcon {
     width: 26px; height: 26px;
-    filter: brightness(0) saturate(100%) invert(79%) sepia(63%) saturate(500%) hue-rotate(155deg) brightness(105%) drop-shadow(0 0 3px rgba(34,211,238,0.6));
+    filter: var(--icon-filter-glow);
 }
 
 #dicePanel {
@@ -1009,6 +1096,22 @@ body {
 <body>
 
 <div class="app" id="app">
+    <!-- Control icons -->
+    <div class="header-controls">
+        <button class="ctrl-btn" onclick="navigate('info')" title="Info" aria-label="Info">
+            <svg viewBox="0 0 95 95"><path d="M47.5,0C21.23,0,0,21.23,0,47.5s21.23,47.5,47.5,47.5,47.5-21.23,47.5-47.5S73.77,0,47.5,0h0ZM41.59,17.84h11.92v11.92h-11.92v-11.92ZM59.42,77.16h-23.75v-5.91h5.91v-23.75h-5.91v-5.91h17.84v29.66h5.91v5.91Z"/></svg>
+        </button>
+        <a class="ctrl-btn" href="https://forms.gle/1ZQMZHwR7cprbxuC7" target="_blank" rel="noopener" title="Report Bug" aria-label="Report Bug">
+            <svg viewBox="0 0 81.66 81.13"><path d="M22.08,5.63c-1.38-1.04-1.66-3-.62-4.38s3-1.66,4.38-.62l7.12,5.33c4.83-2.39,10.5-2.39,15.34,0l7.12-5.33c.66-.5,1.5-.71,2.32-.59s1.56.55,2.06,1.22c1.04,1.38.75,3.34-.62,4.38l-5.62,4.17c1.3,1.41,2.37,3.01,3.16,4.75H24.54c.8-1.73,1.87-3.32,3.16-4.71l-5.63-4.21ZM77.88,67.5c-.99-2.98-3.77-5-6.92-5h-5.33c.69-2.37,1.04-4.82,1.04-7.29v-3.12h11.46c1.73,0,3.12-1.4,3.12-3.12s-1.4-3.12-3.12-3.12h-11.46v-10.42h4.17,0c3.14,0,5.93-2.02,6.92-5l3.21-9.62c.48-1.61-.4-3.31-1.99-3.85-1.59-.54-3.32.28-3.92,1.85l-3.21,9.67h0c-.15.42-.55.7-1,.71h-4.17v-1.04c-.02-4.02-3.27-7.27-7.29-7.29h-15.62v17.25c4.3,1.52,6.89,5.93,6.11,10.43-.77,4.5-4.67,7.79-9.24,7.79s-8.47-3.29-9.24-7.79c-.77-4.5,1.81-8.9,6.11-10.43v-17.25h-15.62c-4.02.02-7.27,3.27-7.29,7.29v1.04h-4.17,0c-.45,0-.85-.29-1-.71l-3.34-9.66c-.6-1.57-2.33-2.39-3.92-1.85-1.59.54-2.47,2.24-1.99,3.85l3.21,9.62c.99,2.98,3.77,5,6.92,5h4.17v10.42H3.12c-1.73,0-3.12,1.4-3.12,3.12s1.4,3.12,3.12,3.12h11.46v3.12c0,2.47.36,4.92,1.04,7.29h-5.33c-3.14,0-5.93,2.02-6.92,5L.17,77.13c-.55,1.63.32,3.41,1.96,3.96.33.06.67.06,1,0,1.34,0,2.53-.86,2.96-2.12l3.21-9.67h0c.15-.42.55-.7,1-.71h8.33c4.7,7.77,13.12,12.52,22.21,12.52s17.51-4.75,22.21-12.52h8.33c.45,0,.84.29,1,.71l3.21,9.67h0c.43,1.27,1.62,2.12,2.96,2.12.33.06.67.06,1,0,1.63-.55,2.51-2.32,1.96-3.96l-3.62-9.62ZM37.5,46.88c0,1.27.76,2.4,1.93,2.89,1.17.48,2.51.21,3.41-.68.89-.89,1.16-2.24.68-3.41-.48-1.17-1.62-1.93-2.89-1.93-1.71.02-3.1,1.41-3.12,3.12h0Z"/></svg>
+        </a>
+        <a class="ctrl-btn" href="https://square.link/u/aZ0RRKIi" target="_blank" rel="noopener" title="Support" aria-label="Support">
+            <svg viewBox="0 0 91.67 67.11"><path d="M65.12,53.77c-.41.86-.97,1.57-1.66,2.14-1.48,1.22-3.55,1.75-5.82.87l-16.51-6.35c-.77-.29-1.16-1.16-.86-1.93s1.16-1.16,1.93-.86l16.51,6.35c1.14.44,2.15.2,2.86-.39.35-.29.64-.66.84-1.07.2-.41.32-.86.32-1.29.01-.86-.41-1.73-1.41-2.32l-16.59-9.71c-.2-.1-.37-.24-.52-.43-2.54-3.32-5.99-5.59-10.39-6.64-4.16-1-9.19-.93-15.12.33l-5.14,21.48,24.81,11.17c2.16.97,4.3,1.59,6.46,1.85,2.18.26,4.4.17,6.73-.26l37.43-6.98c1.37-.25,2.19-1.07,2.51-2.03.16-.48.21-1.02.15-1.54-.06-.53-.23-1.05-.51-1.5-.57-.95-1.63-1.64-3.12-1.59l-22.89.72h0ZM65.26,40.29c-16.72-6.34-23.7-14.72-25.13-22.16-.94-4.89.5-9.36,3.18-12.64C45.98,2.21,49.94.12,54.01,0c4.25-.12,8.59,1.86,11.74,6.82C68.89,1.87,73.24-.12,77.49,0c4.07.12,8.03,2.21,10.71,5.49,2.68,3.28,4.12,7.75,3.18,12.64-1.43,7.43-8.42,15.81-25.13,22.16-.33.12-.68.11-.99,0h0ZM16.68,28.09l-9.52-3.11L0,54.86l9.9,1.54,6.78-28.31h0Z"/></svg>
+        </a>
+        <button class="ctrl-btn" onclick="navigate('settings')" title="Settings" aria-label="Settings">
+            <svg viewBox="0 0 83.34 83.34"><path d="M41.67,83.34c1.11,0,2.16-.44,2.95-1.22s1.22-1.84,1.22-2.95v-38.27c4.99-1.73,8.33-6.44,8.33-11.72s-3.34-9.98-8.33-11.72V4.17c0-2.3-1.87-4.17-4.17-4.17s-4.17,1.87-4.17,4.17v13.28c-4.99,1.73-8.33,6.44-8.33,11.72s3.34,9.99,8.33,11.72v38.27c0,1.11.44,2.16,1.22,2.95s1.84,1.22,2.95,1.22ZM41.67,25c1.68,0,3.2,1.02,3.85,2.57.65,1.55.29,3.35-.9,4.54-1.19,1.19-2.98,1.55-4.54.9-1.56-.64-2.57-2.16-2.57-3.85,0-2.3,1.87-4.16,4.17-4.17h0Z"/><path d="M8.48,65.95c-.07.23-.12.48-.14.72v12.5c0,2.3,1.86,4.17,4.16,4.17s4.17-1.87,4.17-4.17v-12.5c-.03-.25-.07-.49-.14-.72,5.04-1.69,8.45-6.39,8.48-11.7.04-5.31-3.32-10.06-8.33-11.81V4.17c0-2.3-1.87-4.17-4.17-4.17s-4.16,1.87-4.16,4.17v38.27C3.32,44.18-.03,48.93,0,54.24c.04,5.31,3.44,10.02,8.48,11.7h0ZM12.5,50c1.69,0,3.21,1.02,3.85,2.57.64,1.55.29,3.35-.9,4.54s-2.98,1.55-4.54.9c-1.55-.64-2.57-2.16-2.57-3.85,0-2.3,1.86-4.16,4.16-4.17h0Z"/><path d="M83.34,54.17c-.02-5.28-3.36-9.98-8.34-11.73V4.17C75,1.87,73.14,0,70.84,0s-4.17,1.87-4.17,4.17v38.27c-5.02,1.75-8.37,6.49-8.33,11.81.03,5.31,3.44,10.02,8.48,11.7-.07.23-.12.48-.14.72v12.5c0,2.3,1.87,4.17,4.17,4.17s4.16-1.87,4.16-4.17v-12.5c-.02-.25-.07-.49-.14-.72,5.05-1.71,8.46-6.44,8.48-11.78h0ZM70.84,58.34c-1.69,0-3.21-1.02-3.85-2.57-.64-1.55-.29-3.35.9-4.54,1.19-1.19,2.98-1.55,4.54-.9,1.55.64,2.57,2.16,2.57,3.85,0-2.3-1.86,4.16-4.16,4.17h0Z"/></svg>
+        </button>
+    </div>
+
     <!-- Header -->
     <header class="site-header">
         <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">
@@ -1019,9 +1122,8 @@ body {
             <h1>Mission <span>Geist</span></h1>
             <div class="subtitle">ITS 17 — Seekers</div>
             <div class="subtitle" style="font-size:0.55rem;margin-top:2px;opacity:0.7">Your Unofficial Companion</div>
-            <div class="version-info"><a href="https://downloads.corvusbelli.com/infinity/organized-play/its-rules-season-17-en-v1.0.2.pdf" target="_blank" rel="noopener" class="version-link">ITS Rules v1.0.2</a> — Updated March 25, 2026</div>
-            <a href="https://forms.gle/1ZQMZHwR7cprbxuC7" target="_blank" rel="noopener" class="feedback-link">Submit Feedback</a>
-            <a href="https://infinitynewengland.com" target="_blank" rel="noopener" class="feedback-link">Courtesy of Infinity New England</a>
+            <div class="version-info"><a href="https://downloads.corvusbelli.com/infinity/organized-play/its-rules-season-17-en-v1.0.2.pdf" target="_blank" rel="noopener" class="version-link">ITS Rules v1.0.2</a> — Updated March 26, 2026</div>
+            <a href="https://infinitynewengland.com" target="_blank" rel="noopener" class="feedback-link" style="display:inline-flex;align-items:center;gap:4px"><img src="ine.svg" alt="INE" class="ine-logo" style="height:2em;opacity:0.7"> Courtesy of Infinity New England</a>
         </div>
     </header>
 
@@ -1041,13 +1143,13 @@ body {
             <summary class="attr-link">Attributions</summary>
             <div class="attr-body">
                 Icons from <a href="https://thenounproject.com" target="_blank" rel="noopener">Noun Project</a> (CC BY 3.0):
-                Radio by Berkah Icon &middot; Briefcase by Fharaz &middot; Person by Dwi Ridwanto &middot; d20 by Lucas Rathgeb &middot; Cards by MihiMihi &middot; Medical by Nursa &middot; Crosshair by ddoni4303 &middot; Cog by Alice Design &middot; Global by Vectorstall
+                Radio by Berkah Icon &middot; Briefcase by Fharaz &middot; Person by Dwi Ridwanto &middot; d20 by Lucas Rathgeb &middot; Cards by MihiMihi &middot; Medical by Nursa &middot; Crosshair by ddoni4303 &middot; Cog by Alice Design &middot; Global by Vectorstall &middot; Setting by ghufronagustian &middot; Bug by Dwi Ridwanto &middot; Info by svanyya &middot; Donate by Imron Sadewo
             </div>
         </details>
         <div class="attr-body" style="margin-top:8px;font-size:0.55rem;color:var(--text-muted);max-width:480px;margin-left:auto;margin-right:auto">
             Infinity Mission Geist is a community tool developed by volunteers. This tool is not directly operated or endorsed by Corvus Belli S.L.L. &ldquo;Infinity&rdquo; and the Infinity logo are trademarks of Corvus Belli.
         </div>
-        <div class="attr-body" style="margin-top:6px;font-size:0.5rem;color:var(--text-muted)">Build 2026032502</div>
+        <div class="attr-body" style="margin-top:6px;font-size:0.5rem;color:var(--text-muted)">Build 2026032601</div>
     </footer>
 </div>
 
@@ -2278,15 +2380,15 @@ function debouncedSave() {
 const PREFS_VERSION = 1;
 let prefs = null;
 
-function defaultPrefs() { return { version: PREFS_VERSION, favorites: [] }; }
+function defaultPrefs() { return { version: PREFS_VERSION, favorites: [], theme: 'dark', density: 'compact' }; }
 function loadPreferences() {
     try {
         if (!isLocalStorageAvailable()) return defaultPrefs();
         const raw = localStorage.getItem('geist_prefs');
         if (!raw) return defaultPrefs();
         const p = JSON.parse(raw);
-        if (p.version !== PREFS_VERSION) return defaultPrefs();
-        return p;
+        if (typeof p !== 'object' || p === null) return defaultPrefs();
+        return { ...defaultPrefs(), ...p };
     } catch (e) { return defaultPrefs(); }
 }
 function savePreferences(p) {
@@ -2301,6 +2403,42 @@ function toggleFavorite(missionId) {
     renderRoute();
 }
 window.toggleFavorite = toggleFavorite;
+
+// ═══════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════
+
+const VALID_THEMES = ['dark', 'light'];
+const VALID_DENSITIES = ['compact', 'comfortable'];
+
+function applyTheme(theme) {
+    if (!VALID_THEMES.includes(theme)) theme = 'dark';
+    if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+    }
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = theme === 'light' ? '#f0f2f5' : '#0c101d';
+}
+
+function applyDensity(density) {
+    if (!VALID_DENSITIES.includes(density)) density = 'compact';
+    if (density === 'comfortable') {
+        document.documentElement.style.setProperty('--base-size', '18px');
+    } else {
+        document.documentElement.style.removeProperty('--base-size');
+    }
+}
+
+function setSetting(key, value) {
+    prefs[key] = value;
+    savePreferences(prefs);
+    if (key === 'theme') applyTheme(value);
+    if (key === 'density') applyDensity(value);
+    renderRoute();
+}
+window.setSetting = setSetting;
 
 // ═══════════════════════════════════════════
 // RENDER FUNCTIONS
@@ -2492,7 +2630,7 @@ function renderMissionDetail(mission) {
             boxes += `<input type="checkbox" class="class-check" data-pts="${cPts}" data-class-idx="${ci}" onchange="recalcScore()">`;
         }
         const hint = `<span class="class-pts-hint">${cPts} OP each</span>`;
-        h += `<div class="callout"><div class="callout-label">Classified${boxes}${hint}<button class="class-draw-btn" onclick="drawClassified()"><img src="${ICON_CARDS}" style="width:11px;height:11px;filter:brightness(0) saturate(100%) invert(79%) sepia(63%) saturate(500%) hue-rotate(155deg) brightness(105%)">Draw</button></div>${m.classified}<div class="drawn-list" id="drawnList"></div></div>`;
+        h += `<div class="callout"><div class="callout-label">Classified${boxes}${hint}<button class="class-draw-btn" onclick="drawClassified()"><img src="${ICON_CARDS}" style="width:11px;height:11px;filter:var(--icon-filter)">Draw</button></div>${m.classified}<div class="drawn-list" id="drawnList"></div></div>`;
     } else if (m.classified) {
         h += `<div class="callout"><div class="callout-label">Classified</div>${m.classified}</div>`;
     }
@@ -2815,6 +2953,61 @@ function renderTournamentRules() {
     return h;
 }
 
+function renderSettings() {
+    const t = prefs.theme || 'dark';
+    const d = prefs.density || 'compact';
+    let h = '<div class="settings-page">';
+    h += `<a href="#missions" class="back-btn">&larr; Back</a>`;
+    h += `<h2>Settings</h2>`;
+    h += `<div class="settings-group">`;
+    h += `<div class="settings-group-label">Theme</div>`;
+    h += `<div class="settings-options">`;
+    h += `<button class="settings-opt${t === 'dark' ? ' active' : ''}" onclick="setSetting('theme','dark')">Dark</button>`;
+    h += `<button class="settings-opt${t === 'light' ? ' active' : ''}" onclick="setSetting('theme','light')">Light</button>`;
+    h += `</div></div>`;
+    h += `<div class="settings-group">`;
+    h += `<div class="settings-group-label">Text Size</div>`;
+    h += `<div class="settings-options">`;
+    h += `<button class="settings-opt${d === 'compact' ? ' active' : ''}" onclick="setSetting('density','compact')">Compact</button>`;
+    h += `<button class="settings-opt${d === 'comfortable' ? ' active' : ''}" onclick="setSetting('density','comfortable')">Comfortable</button>`;
+    h += `</div></div>`;
+    h += `<div class="settings-preview">The quick brown fox jumps over the lazy dog. Sample mission text at current size.</div>`;
+    h += '</div>';
+    return h;
+}
+
+function renderInfo() {
+    let h = '<div class="settings-page">';
+    h += `<a href="#missions" class="back-btn">&larr; Back</a>`;
+    h += `<h2 style="margin-bottom:4px">Infinity Mission Geist</h2>`;
+    h += `<p class="text-note" style="margin-bottom:20px">Unofficial Companion App</p>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Why Mission Geist?</h2><span class="chevron">▼</span></div><div class="rules-section-body">`;
+    h += `<p>We created Mission Geist because we love this game and want to have the best tools possible. We started with <a href="https://infinitythelinks.com" target="_blank" rel="noopener">infinitythelinks.com</a>, but we were still clicking between many resources.</p>`;
+    h += `<p style="margin-top:8px">The information needed to play an ITS game can be scattered between Corvus Sphere, the ITS Seasonal Rules, and the Core Rules. Geist seeks to pull that all in one place in a static, reliable, performant package.</p>`;
+    h += `</div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>What is a Geist?</h2><span class="chevron">▼</span></div><div class="rules-section-body">`;
+    h += `<p>As described in Corvus Belli's <a href="https://infinityuniverse.ai" target="_blank" rel="noopener">AI Database</a>:</p>`;
+    h += `<blockquote style="margin:10px 0;padding:8px 14px;border-left:3px solid var(--cyan);color:var(--text-dim);font-style:italic">"In the HumanSphere universe, a geist is a quantronic companion and personal assistant uniquely adapted to their user. They are involved in managing various aspects of their owner's personal area network, often acting as extensions of the user rather than independent entities. Geists are capable of providing assistance in numerous tasks, ranging from enhancing the user's skills to covering their weaknesses. They can also function semi-independently in specific areas, utilizing their skills in hacking, research, and more."</blockquote>`;
+    h += `</div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>I Found an Error!</h2><span class="chevron">▼</span></div><div class="rules-section-body">`;
+    h += `<p>Wonderful, please <a href="https://docs.google.com/forms/d/e/1FAIpQLSdPLEEICZskRHSx6CYgc6-lm-mi-PzqaHX89ZktoDZbIzl9pg/viewform" target="_blank" rel="noopener">report it here</a>. There are many rules, modifiers, and scoring criteria, and we probably missed a few! We will correct it quickly.</p>`;
+    h += `</div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>We're Corvus Belli and We Have a Question or Concern</h2><span class="chevron">▼</span></div><div class="rules-section-body">`;
+    h += `<p>We're big fans, and we would love to hear from you! You can reach us at <a href="mailto:admin@infinitynewengland.com">admin@infinitynewengland.com</a>.</p>`;
+    h += `</div></div>`;
+
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>I Organize a Satellite and I Would Like My Mission List Preloaded</h2><span class="chevron">▼</span></div><div class="rules-section-body">`;
+    h += `<p>We'd love to help your players — reach out at <a href="mailto:admin@infinitynewengland.com">admin@infinitynewengland.com</a>.</p>`;
+    h += `</div></div>`;
+
+    h += '</div>';
+    return h;
+}
+
 function renderReference() {
     let h = '<p class="text-note" style="margin-bottom:12px">Shared rules that appear across multiple missions. These are also available inline within each mission card.</p>';
     Object.keys(SHARED_RULES).forEach(id => {
@@ -2966,6 +3159,10 @@ function renderRoute() {
         content.innerHTML = renderTournamentRules();
     } else if (parts[0] === 'reference') {
         content.innerHTML = renderReference();
+    } else if (parts[0] === 'settings') {
+        content.innerHTML = renderSettings();
+    } else if (parts[0] === 'info') {
+        content.innerHTML = renderInfo();
     } else {
         content.innerHTML = renderMissionGrid();
     }
@@ -2982,6 +3179,8 @@ window.addEventListener('hashchange', renderRoute);
 // Initial render
 document.getElementById('diceIcon').src = ICON_D20;
 prefs = loadPreferences();
+applyTheme(prefs.theme);
+applyDensity(prefs.density);
 renderRoute();
 
 // Section toggle

@@ -3050,6 +3050,77 @@ function renderReference() {
         </tbody></table>
     </div></div>`;
 
+    // Reinforcements
+    h += `<div class="rules-section"><div class="rules-section-head" onclick="toggleSection(this)"><h2>Reinforcements</h2><span class="chevron">▼</span></div><div class="rules-section-body">
+        <p>Reinforcements let players hold a separate combat force in reserve, deployed mid-game after suffering casualties or in the final round. All players must use Reinforcements when a mission calls for it.</p>
+
+        <h3 style="margin:14px 0 6px">Army List Structure</h3>
+        <p>The Army List is split into two sections:</p>
+        <ul style="margin:6px 0 6px 18px;line-height:1.6">
+            <li><strong>Main Section</strong> — deployed normally at game start. Must include one Trooper with <strong>Commlink</strong>.</li>
+            <li><strong>Reinforcements Section</strong> — a separate Combat Group (or Groups), deployed only via Request Reinforcements. Only Troopers whose Unit Profile name includes <em>Reinforcements (Reinf.)</em> may be included here. These cannot join Main Section Fireteams, and vice versa.</li>
+        </ul>
+        <p><strong>Standard game:</strong> 350pts / 7 SWC — 250pts + 5 SWC for Main, 100pts + 2 SWC for Reinforcements.</p>
+        <p>Once deployed, the Reinforcements Section forms its own separate Combat Group(s). Troopers cannot be moved into or out of Reinforcement Combat Groups until the player's following Tactical Phase.</p>
+        <p>Troopers in the Reinforcements Section count toward the 15-Trooper Army List limit (unless Commlink grants a bonus).</p>
+
+        <h3 style="margin:14px 0 6px">Player Turn Sequence (with Reinforcements)</h3>
+        <ol style="margin:6px 0 6px 18px;line-height:1.8">
+            <li>Start of Turn: Tactical Phase
+                <ol style="margin:4px 0 0 18px;list-style-type:lower-alpha;line-height:1.6">
+                    <li>Executive use of Command Tokens</li>
+                    <li><strong>Request Reinforcements</strong></li>
+                    <li>Retreat! Check</li>
+                    <li>Loss of Lieutenant Check</li>
+                    <li>Order Count</li>
+                </ol>
+            </li>
+            <li>Impetuous Phase</li>
+            <li>Orders Phase</li>
+            <li>States Phase</li>
+            <li>End of Turn</li>
+        </ol>
+
+        <h3 style="margin:14px 0 6px">Commlink (Special Skill)</h3>
+        <p><strong>Type:</strong> Automatic — Obligatory</p>
+        <ul style="margin:6px 0 6px 18px;line-height:1.6">
+            <li>Requires a 100pt / 2 SWC Reinforcements Section.</li>
+            <li>Allows the player to Request Reinforcements during the Tactical Phase — even if the Commlink Trooper is Null or removed from play.</li>
+            <li><strong>Commlink (+N)</strong> increases the Army List Trooper limit by N (e.g. Commlink (+2) allows 17 Troopers).</li>
+            <li>When the Reinforcements Section deploys, the Commlink Trooper may move to any Reinforcement Combat Group for free (no Command Token needed).</li>
+            <li>Maximum one Commlink Trooper per Army List.</li>
+        </ul>
+
+        <h3 style="margin:14px 0 6px">Request Reinforcements — Conditions</h3>
+        <p>The Active Player may Request Reinforcements during the Tactical Phase if <strong>either</strong> condition is met:</p>
+        <ul style="margin:6px 0 6px 18px;line-height:1.6">
+            <li>Their current Victory Points total is ≤ the Request Reinforcements value in the chart below, <strong>or</strong></li>
+            <li>It is the third Game Round.</li>
+        </ul>
+
+        <h3 style="margin:14px 0 6px">Request Reinforcements Chart</h3>
+        <table class="rules-table"><thead><tr><th>Army Points</th><th>Request Reinf. (VP ≤)</th><th>Retreat! (VP ≤)</th></tr></thead><tbody>
+        <tr><td>250</td><td>200</td><td>63</td></tr>
+        <tr><td>300</td><td>225</td><td>75</td></tr>
+        <tr><td>350</td><td>250</td><td>88</td></tr>
+        <tr><td>400</td><td>275</td><td>100</td></tr>
+        </tbody></table>
+
+        <h3 style="margin:14px 0 6px">Deployment Procedure</h3>
+        <ol style="margin:6px 0 6px 18px;line-height:1.6">
+            <li>Place a <strong>DropPod Token (DROPPOD)</strong> completely inside the player's Obligatory half of the table. The location must have enough space for the token's full base — or both players may mutually agree to a location even if the base doesn't fit.</li>
+            <li>Deploy all Troopers in the Reinforcements Section (plus their Peripherals and Deployable Weapons/Equipment) completely inside the DropPod's Zone of Control and inside the player's half of the table, following normal Deployment Rules with "Deployment Zone" replaced by "DropPod's Zone of Control" throughout.</li>
+            <li>All Troopers must be deployed in the same Tactical Phase.</li>
+        </ol>
+        <p><strong>Restrictions:</strong></p>
+        <ul style="margin:6px 0 6px 18px;line-height:1.6">
+            <li>Cannot deploy inside buildings or closed scenery pieces (even with partial roofs, open doors, or windows).</li>
+            <li>Cannot deploy inside an Exclusion Zone (if the scenario has one).</li>
+            <li>Confused Deployment does not apply to the DropPod or to Reinforcement Troopers.</li>
+            <li>Fireteams may be created from Reinforcement Troopers at deployment without spending Command Tokens (must follow Reinforcements Fireteam Charts).</li>
+        </ul>
+    </div></div>`;
+
     return h;
 }
 

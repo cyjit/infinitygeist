@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- BUILD: geist-2026032602 -->
+<!-- BUILD: geist-2026033001 -->
 <!--
     PROJECT: ITS Season 17 Quick Reference
     DESCRIPTION: A lightweight, single-file webapp for the Infinity Tournament System Season 17 rules.
@@ -1069,6 +1069,35 @@ html[data-theme="light"] .site-header .version-info { opacity: 1; }
     #dicePanel { left: 8px; right: 8px; width: auto; bottom: 70px; }
 }
 
+/* ═══════════════════════════════════════════
+   ResOps Setup Flow
+   ═══════════════════════════════════════════ */
+.resops-flow { display: flex; flex-direction: column; }
+.flow-step {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.flow-step:last-child { border-bottom: none; }
+.flow-num {
+    flex-shrink: 0; width: 26px; height: 26px;
+    background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.4);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 700; color: #c084fc;
+    margin-top: 1px;
+}
+.flow-body { flex: 1; font-size: 0.84rem; line-height: 1.5; }
+.flow-body strong { color: var(--white); }
+.flow-body ul { margin: 4px 0 2px 16px; }
+.flow-body li { margin-bottom: 2px; color: var(--text-dim); }
+.flow-body > p { margin-top: 4px; color: var(--text-dim); }
+.flow-note { font-size: 0.75rem !important; color: var(--text-muted) !important; font-style: italic; margin-top: 3px !important; }
+.flow-round-note {
+    background: rgba(168,85,247,0.08); border: 1px solid rgba(168,85,247,0.22);
+    border-radius: var(--radius); padding: 8px 12px; margin-top: 10px;
+    font-size: 0.82rem; color: #c084fc; line-height: 1.5;
+}
+.flow-round-note strong { color: #c084fc; }
+
 /* Attributions footer */
 .attr-footer { text-align: center; padding: 20px 0 8px; margin-top: 8px; border-top: 1px solid var(--border); }
 .attr-details { display: inline-block; }
@@ -1265,6 +1294,11 @@ const SHARED_RULES = {
         <tr><td>14–16</td><td>Overkill</td><td>Cancels Unloaded / restores Disposable weapons, OR grants BS Attack (SR-1)</td></tr>
         <tr><td>17–20</td><td>NanoShield</td><td>+2 MOD to all Saving Rolls that Order</td></tr>
         </tbody></table>`
+    },
+    subjugate: {
+        title: "Subjugate",
+        html: `<p>A Quadrant or Sector is Subjugated by a player as long as that player is the <strong>only one</strong> with at least one Trooper (as a Model, not a Marker) inside the area — no enemy Troopers may be inside. Models in a Null State do not count.</p>
+        <p>A Trooper is inside when more than half the Trooper's base is inside that area.</p>`
     }
 };
 
@@ -2079,6 +2113,143 @@ const MISSIONS = [
             { type: 'techcoffin', x: 0.5, y: 0.5, label: 'Tech-Coffin' }
         ] }
     },
+
+    // ── RESILIENCE OPERATIONS ──
+    {
+        id: 'resilience_operations', name: 'Resilience Operations', category: 'resops',
+        tacticalSupport: 0, reinforcements: false,
+        hvts: 4, classifiedCount: 0, retreat: true,
+        flavor: 'Uses the Tactical Objectives Deck and Battle Conditions Deck — no fixed scenarios, no Classified Deck.',
+        deployment: DEPLOYMENT_STANDARD, deployType: 'standard',
+        objectives: [
+            { text: 'Tactical Objective 1 (drawn from deck)', pts: '1 each (max 3)' },
+            { text: 'Tactical Objective 2 (drawn from deck)', pts: '1 each (max 3)' },
+            { text: 'Tactical Objective 3 (drawn from deck)', pts: '1 each (max 3)' },
+            { text: 'Accomplished more Tactical Objectives than adversary', pts: '1 OP' },
+        ],
+        classified: null,
+        deployNotes: 'Cannot deploy in Silhouette contact with any Beacon, HVT, or Objective. Player who kept Deployment places all Tactical Elements first.',
+        thresholdHtml: `<div class="callout"><div class="callout-label">Tactical Objectives Deck</div><p>Draw 4 cards each game, discard 1 (keep 3). One Objective reveals per Round. Use counters above to track OP earned per Objective (each card awards its own conditions — up to 3 OP per card). You need the physical Tactical Objectives Deck to play ResOps.</p></div>`,
+        sharedRules: ['dominate_zo', 'shasvastii', 'baggage', 'control', 'subjugate', 'killing', 'end_of_mission'],
+        setupFlowHtml: `<div class="resops-flow">
+            <div class="flow-step">
+                <div class="flow-num">1</div>
+                <div class="flow-body">
+                    <strong>Draw Tactical Objectives</strong>
+                    <ul>
+                        <li>Done after learning opponent's faction, before selecting Army List</li>
+                        <li>Each player shuffles their Tactical Objectives Deck in front of opponent; draw 4, discard 1 (keep 3)</li>
+                        <li>Optional: spend 1 Command Token to discard one Objective and draw a replacement</li>
+                    </ul>
+                    <p class="flow-note">Private Information until end of game. Must show all cards to opponent at end.</p>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">2</div>
+                <div class="flow-body"><strong>Select Army List</strong></div>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">3</div>
+                <div class="flow-body"><strong>Initiative Roll</strong></div>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">4</div>
+                <div class="flow-body">
+                    <strong>Draw Battle Conditions</strong>
+                    <ul>
+                        <li>Done after Initiative Roll, before Deployment Phase</li>
+                        <li>Each player shuffles their Battle Conditions Deck, draws 2, discards 1</li>
+                        <li>In Initiative order: reveal card, perform required decisions/placements</li>
+                        <li>If both players draw the same Battle Condition, second player redraws</li>
+                        <li>Battle Conditions last the whole game and affect both players</li>
+                        <li>If multiple Movement Bonuses granted, only one applies</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">5</div>
+                <div class="flow-body">
+                    <strong>Place Tactical Elements</strong>
+                    <ul>
+                        <li>Player who kept Deployment places their elements first</li>
+                        <li><strong>Beacons ×2</strong> — inside your DZ, Silhouette contact with DZ outer edge</li>
+                        <li><strong>HVTs ×4</strong> — totally within 4&quot; outside your DZ</li>
+                        <li><strong>Objectives ×3</strong> — totally within 8&quot; of central line, in your half</li>
+                        <li><strong>F-13 Turrets</strong> — only if specified by a Battle Conditions card</li>
+                    </ul>
+                    <p class="flow-note">Cannot deploy in Silhouette contact with any Beacon, HVT, or Objective.</p>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">6</div>
+                <div class="flow-body"><strong>Deployment Phase</strong></div>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">7</div>
+                <div class="flow-body">
+                    <strong>Start of Round 1 — Reveal Tactical Objective</strong>
+                    <ul>
+                        <li>Both players simultaneously choose and reveal one Tactical Objective</li>
+                        <li>If you hold <em>Priority Target</em>, you must reveal it first</li>
+                        <li>Start of Rounds 2 and 3: reveal another Tactical Objective simultaneously</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="flow-round-note">
+            <strong>Scoring:</strong> Each Tactical Objective provides up to 3 OP (exact conditions vary per card). An Objective is "accomplished" when you earn at least 1 OP from it. Having accomplished more Objectives than your opponent at end of game: <strong>+1 OP</strong>.
+        </div>`,
+        specialRules: `
+            <h4>Beacons <span style="font-weight:400;font-size:0.85em">(2 per player)</span></h4>
+            <p>Placed inside your DZ, in Silhouette contact with the DZ outer edge. Only damaged by weapons with the <strong>Anti-materiel</strong> Trait. Targetable by <strong>Engineer</strong> Special Skill or <strong>GizmoKit</strong> (PH 10). ARM 4 / BTS 4 / STR 3 / S:2. Cannot deploy in Silhouette contact with a Beacon.</p>
+
+            <h4>HVTs <span style="font-weight:400;font-size:0.85em">(4 per player)</span></h4>
+            <p>Placed totally within 4" outside your DZ. Follow standard Civilian Rules except for placement. Some Battle Conditions cards make HVTs Hostile (see profile below).</p>
+
+            <h4>Objectives <span style="font-weight:400;font-size:0.85em">(3 per player)</span></h4>
+            <p>Placed totally within 8" of the central line, in your half of the table. Use an Objective Token (40mm) or equivalent scenery piece.</p>
+
+            <h4>Beepers</h4>
+            <p>Each Trooper has 1 Beeper; <strong>Specialist Troopers</strong> have 2. Placed using the <strong>Place Deployable</strong> Skill (cannot be Coordinated). Can be damaged by Attacks. ARM 2 / BTS 0 / STR 1 / S:2.</p>
+
+            <h4>F-13 Defensive Turret <span style="font-weight:400;font-size:0.85em">(Battle Conditions only)</span></h4>
+            <p>Total Reaction, 360° Visor. BS 10 / ARM 2 / BTS 3 / STR 1 / S:2. BS Weapon: Combi Rifle. Melee: PARA (-3) CCW. Reacts to any Order declared by an active enemy Model (not Markers) in LoF or Silhouette contact with a BS Attack or CC Attack. Removed when STR reaches 0.</p>
+
+            <h4>Profiles Quick Reference</h4>
+            <table class="rules-table">
+                <thead><tr><th>Element</th><th>ARM</th><th>BTS</th><th>STR / VITA</th><th>S</th><th>Notes</th></tr></thead>
+                <tbody>
+                    <tr><td>Beacon</td><td>4</td><td>4</td><td>STR 3</td><td>2</td><td>Anti-mat. only; GizmoKit PH 10</td></tr>
+                    <tr><td>Beeper</td><td>2</td><td>0</td><td>STR 1</td><td>2</td><td>Place Deployable Skill; no Coordinated</td></tr>
+                    <tr><td>HVT (Civilian)</td><td>—</td><td>—</td><td>VITA 2</td><td>2</td><td>WIP 11, BS 5, CC 6; PH 10</td></tr>
+                    <tr><td>HVT (Hostile)</td><td>1</td><td>0</td><td>VITA 1</td><td>2</td><td>WIP 11, BS 8, PH 11; Stun Pistol</td></tr>
+                    <tr><td>F-13 Turret</td><td>2</td><td>3</td><td>STR 1</td><td>2</td><td>BS 10; Total Reaction; 360° Visor</td></tr>
+                </tbody>
+            </table>
+        `,
+        skills: [
+            {
+                name: 'Capture Tactical Element',
+                type: 'Short Skill — Attack',
+                requirements: [
+                    'In Silhouette contact with a Model in a Null State who is carrying a Tactical Element, OR',
+                    'In Silhouette contact with an allied Trooper carrying a Tactical Element, OR',
+                    'In Silhouette contact with a Tactical Element not currently being carried.'
+                ],
+                effects: [
+                    'No Roll required — automatically Captures the Tactical Element.',
+                    'Each Model may carry a maximum of 1 Captured Tactical Element (2 with Baggage).',
+                    'Only Models (not Markers: Camo, Impersonation, Holoechoes…) can carry Tactical Elements.',
+                    'The Tactical Element remains in Silhouette contact with the carrier at all times.',
+                    'If the carrier enters any Null State, the Tactical Element is dropped (moved slightly out of contact).',
+                    'Carried Tactical Elements do not block movement or LoF.',
+                    'Cannot be declared as part of a Coordinated Order.'
+                ]
+            }
+        ],
+        mapData: { type: 'resops' },
+        endNotes: ['Tactical Objectives are Private Information — show all cards to your opponent at end of game.']
+    },
 ];
 
 
@@ -2192,6 +2363,45 @@ function generateMap(mission) {
 
         svg += dimLabel(tx + S + 4, ty, tx + S + 4, ty + dzH, '12"', 'right');
         svg += dimLabel(tx + S + 4, ty + S - dzH, tx + S + 4, ty + S, '12"', 'right');
+
+    } else if (md.type === 'resops') {
+        const dzH  = S * 0.25;    // 12" deployment zone
+        const hvtH = S * 0.0833;  // 4" HVT band
+        const objH = S * 0.1667;  // 8" objective zone
+
+        // DZ A (bottom, cyan)
+        svg += `<rect x="${tx}" y="${ty+S-dzH}" width="${S}" height="${dzH}" fill="rgba(34,211,238,0.06)" stroke="rgba(34,211,238,0.3)" stroke-width="1" stroke-dasharray="4 2" rx="2"/>`;
+        svg += `<text x="${tx+8}" y="${ty+S-dzH+16}" fill="rgba(34,211,238,0.5)" font-size="10" font-weight="600">DEPLOYMENT ZONE A</text>`;
+        // DZ B (top, orange)
+        svg += `<rect x="${tx}" y="${ty}" width="${S}" height="${dzH}" fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.3)" stroke-width="1" stroke-dasharray="4 2" rx="2"/>`;
+        svg += `<text x="${tx+8}" y="${ty+16}" fill="rgba(245,158,11,0.5)" font-size="10" font-weight="600">DEPLOYMENT ZONE B</text>`;
+
+        // HVT zones (green band just outside each DZ)
+        svg += `<rect x="${tx}" y="${ty+S-dzH-hvtH}" width="${S}" height="${hvtH}" fill="rgba(52,211,153,0.07)" stroke="rgba(52,211,153,0.3)" stroke-width="1" stroke-dasharray="3 2" rx="2"/>`;
+        svg += `<text x="${tx+S/2}" y="${ty+S-dzH-hvtH/2+4}" fill="rgba(52,211,153,0.6)" font-size="8" font-weight="600" text-anchor="middle">HVTs ×4 (within 4")</text>`;
+        svg += `<rect x="${tx}" y="${ty+dzH}" width="${S}" height="${hvtH}" fill="rgba(52,211,153,0.07)" stroke="rgba(52,211,153,0.3)" stroke-width="1" stroke-dasharray="3 2" rx="2"/>`;
+        svg += `<text x="${tx+S/2}" y="${ty+dzH+hvtH/2+4}" fill="rgba(52,211,153,0.6)" font-size="8" font-weight="600" text-anchor="middle">HVTs ×4 (within 4")</text>`;
+
+        // Objective zones (purple — within 8" of center, in each half)
+        svg += `<rect x="${tx}" y="${ty+S/2}" width="${S}" height="${objH}" fill="rgba(168,85,247,0.07)" stroke="rgba(168,85,247,0.3)" stroke-width="1" stroke-dasharray="3 2" rx="2"/>`;
+        svg += `<text x="${tx+S/2}" y="${ty+S/2+objH/2+4}" fill="rgba(168,85,247,0.65)" font-size="8" font-weight="600" text-anchor="middle">Objectives ×3 (within 8" of center)</text>`;
+        svg += `<rect x="${tx}" y="${ty+S/2-objH}" width="${S}" height="${objH}" fill="rgba(168,85,247,0.07)" stroke="rgba(168,85,247,0.3)" stroke-width="1" stroke-dasharray="3 2" rx="2"/>`;
+        svg += `<text x="${tx+S/2}" y="${ty+S/2-objH/2+4}" fill="rgba(168,85,247,0.65)" font-size="8" font-weight="600" text-anchor="middle">Objectives ×3 (within 8" of center)</text>`;
+
+        // Beacon indicators on DZ outer edges (example positions at 25% and 75% width)
+        [0.25, 0.75].forEach(xf => {
+            const bx = tx + S * xf;
+            const byA = ty + S - dzH, byB = ty + dzH;
+            svg += `<circle cx="${bx}" cy="${byA}" r="7" fill="rgba(34,211,238,0.18)" stroke="rgba(34,211,238,0.65)" stroke-width="1.5"/>`;
+            svg += `<text x="${bx}" y="${byA+4}" fill="rgba(34,211,238,0.85)" font-size="7" font-weight="700" text-anchor="middle">BCN</text>`;
+            svg += `<circle cx="${bx}" cy="${byB}" r="7" fill="rgba(245,158,11,0.18)" stroke="rgba(245,158,11,0.65)" stroke-width="1.5"/>`;
+            svg += `<text x="${bx}" y="${byB+4}" fill="rgba(245,158,11,0.85)" font-size="7" font-weight="700" text-anchor="middle">BCN</text>`;
+        });
+
+        svg += dimLabel(tx + S + 4, ty + S - dzH, tx + S + 4, ty + S, '12"', 'right');
+        svg += dimLabel(tx + S + 4, ty, tx + S + 4, ty + dzH, '12"', 'right');
+        svg += dimLabel(tx - 4, ty + S - dzH - hvtH, tx - 4, ty + S - dzH, '4"', 'left');
+        svg += dimLabel(tx - 4, ty + S/2, tx - 4, ty + S/2 + objH, '8"', 'left');
     }
 
     // Center line
@@ -2581,6 +2791,9 @@ function renderMissionDetail(mission) {
     h += `<div class="mission-meta">`;
     if (m.category === 'da') {
         h += '<span class="tag tag-da">Direct Action</span>';
+    } else if (m.category === 'resops') {
+        h += '<span class="tag tag-resops">Resilience Operations</span>';
+        h += `<span class="tag tag-hvt"><img src="${ICON_HVT}" class="meta-icon" alt="">HVT: ${m.hvts}/side</span>`;
     } else {
         h += `<span class="tag tag-class"><img src="${ICON_CLASSIFIED}" class="meta-icon" alt="">Classified: ${m.classifiedCount}</span>`;
         h += `<span class="tag tag-hvt"><img src="${ICON_HVT}" class="meta-icon" alt="">HVT: ${m.hvts}</span>`;
@@ -2594,6 +2807,13 @@ function renderMissionDetail(mission) {
 
     // Tactical Support (if mission has any)
     h += renderTacticalSupport(m.tacticalSupport);
+
+    // Setup Flow (ResOps and any future flow-based missions)
+    if (m.setupFlowHtml) {
+        h += `<div class="mission-section open"><div class="mission-section-head" onclick="toggleSection(this)"><h3>Setup Flow</h3><span class="chevron">▼</span></div><div class="mission-section-body">`;
+        h += m.setupFlowHtml;
+        h += `</div></div>`;
+    }
 
     // Objectives (open by default)
     h += `<div class="mission-section open"><div class="mission-section-head" onclick="toggleSection(this)"><h3>Mission Objectives</h3><button class="rand-btn" style="font-size:0.6rem;padding:2px 8px;margin-left:auto;margin-right:8px" onclick="event.stopPropagation();clearAndReset('${m.id}')" title="Clear all scoring and start fresh">CLEAR</button><span class="chevron">▼</span></div><div class="mission-section-body">`;
@@ -2737,6 +2957,20 @@ function renderMissionGrid() {
         h += m.reinforcements ? '<span class="tile-stat reinf-yes">Reinf ✓</span>' : '<span class="tile-stat reinf-no">Reinf ✗</span>';
         h += `</div></div>`;
     });
+
+    const resops = MISSIONS.filter(m => m.category === 'resops');
+    if (resops.length) {
+        h += `<div class="section-divider">Resilience Operations <span class="divider-note">Tactical Objectives Deck + Battle Conditions Deck</span></div>`;
+        resops.forEach(m => {
+            h += `<div class="mission-tile" onclick="navigate('mission/${m.id}')">`;
+            h += `<div class="tile-name">${m.name}</div>`;
+            h += `<div class="tile-stats">`;
+            h += `<span class="tag tag-resops" style="font-size:0.65rem;padding:2px 7px;line-height:1.4">ResOps</span>`;
+            h += `<span class="tile-stat"><img src="${ICON_HVT}" class="tile-icon" alt="">4 HVTs/side</span>`;
+            h += `</div></div>`;
+        });
+    }
+
     h += `</div>`;
     return h;
 }
@@ -3246,7 +3480,7 @@ const HEADER_TAGLINES = [
     { text: "Retro mission packs coming soon!" },
     { html: '<a href="https://infinitynewengland.com/baystate.html" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">Bay State Showdown<br>July 11-12, Wakefield MA</a>' },
     { text: "Now with Reinforcements!" },
-    { text: "ResOps helper coming soon!" },
+    { text: "ResOps setup flow now included!" },
     { text: "Do you think the Asura will notice me?", icon: "ohmygeist.png" },
 ];
 (function() {
